@@ -92,6 +92,13 @@
   .askrow input:focus{outline:none;border-color:var(--gold-deep)}
   .askrow button{flex:none;background:var(--gold);color:#221a08;border:none;border-radius:999px;padding:0 20px;font-family:"IBM Plex Mono",monospace;font-weight:500;cursor:pointer}
   .askrow button:active{transform:scale(.96)}
+  .askrow button.mic{background:var(--night-2);border:1px solid var(--gold-deep);color:var(--gold);padding:0 14px;font-size:18px}
+  .askrow button.mic.listening{background:var(--brick);color:#fff;border-color:var(--brick);animation:micpulse 1.3s infinite}
+  @keyframes micpulse{0%{box-shadow:0 0 0 0 rgba(194,87,47,.6)}70%{box-shadow:0 0 0 10px rgba(194,87,47,0)}100%{box-shadow:0 0 0 0 rgba(194,87,47,0)}}
+  .hfrow{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .hfbtn{background:var(--night-2);border:1px solid var(--edge);color:var(--bone-dim);border-radius:999px;padding:9px 16px;font-family:"IBM Plex Mono",monospace;font-size:12px;cursor:pointer}
+  .hfbtn.on{background:var(--live);color:#06210f;border-color:var(--live);animation:micpulse 1.6s infinite}
+  .hfstat{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gold)}
   .keybtn{margin-top:12px;background:none;border:none;color:var(--bone-dim);font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:underline;cursor:pointer;padding:0}
 
   .ledger{margin-top:46px;border-top:1px solid var(--edge);padding-top:22px}
@@ -151,7 +158,12 @@
         <div class="thread" id="thread"></div>
         <div class="askrow">
           <input id="askinput" type="text" placeholder="Ask anything…" autocomplete="off" enterkeyhint="send">
+          <button id="micbtn" class="mic" title="Speak">🎙</button>
           <button id="asksend">Ask</button>
+        </div>
+        <div class="hfrow">
+          <button class="hfbtn" id="hfbtn">🎙️ Hands-free</button>
+          <span class="hfstat" id="hfstat"></span>
         </div>
         <button class="keybtn" id="keybtn">Set Gemini key</button>
       </div>
@@ -184,7 +196,8 @@ const S = {
   history:[],
   prefer:"pa",                 // "pa" | "hi" | "en" — drives source order + voice
   bearingDeg:null, speedKmh:null,
-  busy:false, wakeLock:null, chat:[]
+  busy:false, wakeLock:null, chat:[],
+  speaking:false, handsfree:false, awaiting:false
 };
 const LOOKUP_MIN_M=240, LOOKUP_MIN_MS=11000, REPEAT_BLOCK_MS=25*60*1000;
 const LANGS={pa:{label:"ਪੰਜਾਬੀ"},hi:{label:"हिन्दी"},en:{label:"English"}};
@@ -256,6 +269,8 @@ function speak(text,lang){
     if(v){u.voice=v;u.lang=v.lang;}
     else if(lang==="pa"&&!warnedNoPa){warnedNoPa=true;toast("No Punjabi voice yet — add it in phone Settings › Languages › Text-to-speech");}
     u.rate=.9;u.pitch=1;
+    u.onstart=()=>{S.speaking=true;stopRec();};
+    u.onend=()=>{S.speaking=false;if(S.handsfree)setTimeout(runHF,500);};
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -485,7 +500,7 @@ async function askGemini(q){
       const m=(data.error&&data.error.message)||("Error "+res.status);
       tedit(t,"⚠ "+m);
       if(res.status===400||res.status===403){setKey("");tedit(t,"⚠ "+m+" — tap “Set Gemini key” to re-enter.");}
-      S.chat.pop();return;
+      S.chat.pop();if(S.handsfree)setTimeout(runHF,800);return;
     }
     const parts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
     const ans=parts.map(p=>p.text||"").join("").trim()||"(no answer returned)";
@@ -494,13 +509,70 @@ async function askGemini(q){
     t.innerHTML=esc(ans)+' <span class="say" title="Read aloud">🔊</span>';
     const say=t.querySelector(".say");if(say)say.onclick=()=>speak(ans,lang);
     speak(ans,lang);
-  }catch(e){tedit(t,"⚠ Network error — check your signal and try again.");S.chat.pop();}
+  }catch(e){tedit(t,"⚠ Network error — check your signal and try again.");S.chat.pop();if(S.handsfree)setTimeout(runHF,800);}
 }
 function tedit(node,txt){node.className="bub a";node.textContent=txt;}
 
 asksend.onclick=()=>{const q=askinput.value.trim();if(!q)return;askinput.value="";askGemini(q);};
 askinput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();asksend.click();}});
 keybtn.onclick=()=>{const k=prompt("Paste your Gemini API key (free from aistudio.google.com/apikey):",getKey());if(k!=null){setKey(k.trim());toast(k.trim()?"Key saved on this phone":"Key cleared");}};
+
+// ---------- voice: speak to it, it speaks back (Gemini Live style) ----------
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const micbtn=el("micbtn"),hfbtn=el("hfbtn"),hfstat=el("hfstat");
+let rec=null;
+function recLang(){return S.prefer==="pa"?"pa-IN":S.prefer==="hi"?"hi-IN":"en-IN";}
+function setHF(t){hfstat.textContent=t||"";}
+function stopRec(){try{if(rec){rec.onend=null;rec.onresult=null;rec.stop();}}catch(e){}rec=null;}
+function newRec(cont){const r=new SR();r.lang=recLang();r.continuous=cont;r.interimResults=true;r.maxAlternatives=1;return r;}
+function beep(f){try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=f||880;g.gain.value=.06;o.start();o.stop(a.currentTime+.12);setTimeout(()=>a.close(),300);}catch(e){}}
+function ack(){speak(S.prefer==="pa"?"ਹਾਂ ਜੀ?":S.prefer==="hi"?"हाँ जी?":"Yes?",S.prefer);}
+
+// tap-to-talk: listen once, then ask + speak the answer
+function listenOnce(){
+  if(!SR){toast("No voice input here — open in Chrome");return;}
+  try{window.speechSynthesis.cancel();}catch(e){}
+  stopRec();rec=newRec(false);let finalT="";
+  micbtn.classList.add("listening");
+  setHF(S.prefer==="pa"?"ਸੁਣ ਰਿਹਾ…":S.prefer==="hi"?"सुन रहा…":"Listening…");
+  rec.onresult=e=>{let interim="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalT+=t;else interim+=t;}askinput.value=(finalT+interim).trim();};
+  rec.onerror=e=>{micbtn.classList.remove("listening");setHF("");if(e.error==="not-allowed")toast("Allow microphone in Chrome");};
+  rec.onend=()=>{micbtn.classList.remove("listening");setHF("");const q=(finalT||askinput.value).trim();if(q){askinput.value="";askGemini(q);}};
+  try{rec.start();}catch(e){}
+}
+
+// hands-free: say the wake word, then your question
+const WAKE={
+  pa:["ਮੀਨਾਰ","ਮਿਨਾਰ","ਮੀਨ","ਜੈਮਿਨੀ","ਜੇਮਿਨੀ","minar","meenar","gemini"],
+  hi:["मीनार","मिनार","जैमिनी","जेमिनी","minar","meenar","gemini"],
+  en:["minar","meenar","mihnar","gemini","jemini","hey minar","ok minar"]
+};
+function hasWake(t){const low=t.toLowerCase();return (WAKE[S.prefer]||WAKE.en).find(w=>low.includes(w.toLowerCase()));}
+function stripWake(t,w){const i=t.toLowerCase().indexOf(w.toLowerCase());let s=i>=0?t.slice(i+w.length):t;return s.replace(/^[\s,।:.\-]+/,"").trim();}
+function startHF(){
+  if(!SR){toast("No voice input here — open in Chrome");return;}
+  S.handsfree=true;hfbtn.classList.add("on");beep(660);runHF();
+}
+function stopHF(){S.handsfree=false;S.awaiting=false;hfbtn.classList.remove("on");setHF("");stopRec();}
+function runHF(){
+  if(!S.handsfree||S.speaking)return;
+  stopRec();rec=newRec(true);
+  setHF(S.awaiting?(S.prefer==="pa"?"ਪੁੱਛੋ…":S.prefer==="hi"?"पूछिए…":"Ask…"):(S.prefer==="pa"?"‘ਮੀਨਾਰ’ ਕਹੋ…":S.prefer==="hi"?"‘मीनार’ बोलें…":"Say “Minar”…"));
+  rec.onresult=e=>{
+    if(S.speaking)return;
+    let fin="";for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;}
+    if(!fin.trim())return;
+    if(S.awaiting){S.awaiting=false;stopRec();askGemini(fin.trim());return;}
+    const w=hasWake(fin);
+    if(w){const q=stripWake(fin,w);if(q&&q.length>1){beep();stopRec();askGemini(q);}else{S.awaiting=true;ack();}}
+  };
+  rec.onerror=e=>{if(e.error==="not-allowed"){toast("Allow microphone in Chrome");stopHF();}};
+  rec.onend=()=>{if(S.handsfree&&!S.speaking)setTimeout(runHF,400);};
+  try{rec.start();}catch(e){}
+}
+
+micbtn.onclick=()=>listenOnce();
+hfbtn.onclick=()=>{S.handsfree?stopHF():startHF();};
 
 // ---------- wiring ----------
 fab.onclick=()=>{if(!S.running)start();else manualHere();};
