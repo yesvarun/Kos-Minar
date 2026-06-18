@@ -21,25 +21,15 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{
-    background:var(--night); color:var(--bone);
-    font-family:"Spectral",Georgia,serif;
-    -webkit-font-smoothing:antialiased; line-height:1.6;
-    min-height:100dvh;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
+  body{background:var(--night);color:var(--bone);font-family:"Spectral",Georgia,serif;-webkit-font-smoothing:antialiased;line-height:1.6;min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
   .hi{font-family:"Noto Sans Devanagari","Spectral",serif}
   .pa{font-family:"Noto Sans Gurmukhi","Spectral",serif}
 
-  .topbar{
-    position:sticky; top:0; z-index:40;
-    display:flex; align-items:center; gap:12px;
-    padding:14px 18px; background:rgba(22,27,39,.86);
-    backdrop-filter:blur(10px); border-bottom:1px solid var(--edge);
-  }
+  .topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(22,27,39,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--edge)}
   .dot{width:9px;height:9px;border-radius:50%;background:var(--bone-dim);flex:none;transition:.3s}
   .dot.live{background:var(--live);animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(95,207,128,.55)}70%{box-shadow:0 0 0 9px rgba(95,207,128,0)}100%{box-shadow:0 0 0 0 rgba(95,207,128,0)}}
+  @keyframes micpulse{0%{box-shadow:0 0 0 0 rgba(194,87,47,.6)}70%{box-shadow:0 0 0 12px rgba(194,87,47,0)}100%{box-shadow:0 0 0 0 rgba(194,87,47,0)}}
   .status-txt{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.04em;color:var(--bone-dim);text-transform:uppercase;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .langbtn{font-size:13px;color:var(--gold);background:none;border:1px solid var(--gold-deep);border-radius:999px;padding:6px 13px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
   .langbtn:active{transform:scale(.95)}
@@ -47,7 +37,20 @@
   .shell{display:flex;max-width:760px;margin:0 auto}
   .rail{width:46px;flex:none;position:relative;padding-top:26px}
   .rail svg{position:sticky;top:80px}
-  .stage{flex:1;min-width:0;padding:26px 20px 140px}
+  .stage{flex:1;min-width:0;padding:20px 20px 130px}
+
+  /* voice console — buttons on top */
+  .vconsole{background:linear-gradient(180deg,rgba(224,168,62,.10),transparent);border:1px solid var(--edge);border-radius:14px;padding:16px;margin-bottom:28px}
+  .vbtns{display:flex;gap:10px}
+  .vbtn{flex:1;border:none;border-radius:999px;padding:16px 8px;font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .vbtn:active{transform:scale(.97)}
+  .vbtn.talk{background:var(--night-2);border:1px solid var(--gold-deep);color:var(--gold)}
+  .vbtn.talk.listening{background:var(--brick);color:#fff;animation:micpulse 1.3s infinite}
+  .vbtn.convo{background:var(--gold);color:#221a08}
+  .vbtn.convo.on{background:var(--brick);color:#fff;animation:micpulse 1.6s infinite}
+  .vbtn[disabled]{opacity:.4;pointer-events:none}
+  .vstat{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--gold);margin:13px 0 0;text-align:center;min-height:1.2em}
+  .keybtn{display:block;margin:10px auto 0;background:none;border:none;color:var(--bone-dim);font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:underline;cursor:pointer}
 
   .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
   h1.place{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(2.4rem,9vw,3.8rem);line-height:1.02;margin:0 0 6px;letter-spacing:-.01em;cursor:pointer}
@@ -60,10 +63,9 @@
   .hero{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;background:var(--night-2);display:block;border:1px solid var(--edge);margin-bottom:24px}
   .hero.hidden{display:none}
 
-  /* Known-for highlight block */
   .known{border-left:3px solid var(--gold);background:linear-gradient(90deg,rgba(224,168,62,.08),transparent);padding:16px 18px;border-radius:0 6px 6px 0;margin:0 0 26px}
   .known.hidden{display:none}
-  .known .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 10px;display:flex;align-items:center;gap:7px}
+  .known .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
   .known ul{list-style:none;margin:0;padding:0}
   .known li{position:relative;padding:5px 0 5px 22px;font-size:1.05rem;color:#e4dcca}
   .known li::before{content:"❖";position:absolute;left:0;top:6px;color:var(--gold-deep);font-size:.8em}
@@ -77,30 +79,6 @@
   .chip b{color:var(--bone);font-weight:500;display:block;letter-spacing:.02em}
   .chip a{color:var(--gold);text-decoration:none}
 
-  /* ask (Gemini) */
-  .ask{margin-top:42px;border-top:1px solid var(--edge);padding-top:22px}
-  .ask.hidden{display:none}
-  .ask .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px}
-  .thread{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-  .bub{padding:11px 14px;border-radius:12px;font-size:1.02rem;line-height:1.55;max-width:92%;word-wrap:break-word}
-  .bub.q{align-self:flex-end;background:var(--gold);color:#221a08;border-bottom-right-radius:3px}
-  .bub.a{align-self:flex-start;background:var(--night-2);border:1px solid var(--edge);color:#e4dcca;border-bottom-left-radius:3px}
-  .bub.think{color:var(--bone-dim);font-style:italic}
-  .bub .say{color:var(--gold);cursor:pointer;margin-left:6px}
-  .askrow{display:flex;gap:8px}
-  .askrow input{flex:1;min-width:0;background:var(--night-2);border:1px solid var(--edge);border-radius:999px;padding:12px 16px;color:var(--bone);font-family:"Spectral",serif;font-size:1rem}
-  .askrow input:focus{outline:none;border-color:var(--gold-deep)}
-  .askrow button{flex:none;background:var(--gold);color:#221a08;border:none;border-radius:999px;padding:0 20px;font-family:"IBM Plex Mono",monospace;font-weight:500;cursor:pointer}
-  .askrow button:active{transform:scale(.96)}
-  .askrow button.mic{background:var(--night-2);border:1px solid var(--gold-deep);color:var(--gold);padding:0 14px;font-size:18px}
-  .askrow button.mic.listening{background:var(--brick);color:#fff;border-color:var(--brick);animation:micpulse 1.3s infinite}
-  @keyframes micpulse{0%{box-shadow:0 0 0 0 rgba(194,87,47,.6)}70%{box-shadow:0 0 0 10px rgba(194,87,47,0)}100%{box-shadow:0 0 0 0 rgba(194,87,47,0)}}
-  .hfrow{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
-  .hfbtn{background:var(--night-2);border:1px solid var(--edge);color:var(--bone-dim);border-radius:999px;padding:9px 16px;font-family:"IBM Plex Mono",monospace;font-size:12px;cursor:pointer}
-  .hfbtn.on{background:var(--live);color:#06210f;border-color:var(--live);animation:micpulse 1.6s infinite}
-  .hfstat{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gold)}
-  .keybtn{margin-top:12px;background:none;border:none;color:var(--bone-dim);font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:underline;cursor:pointer;padding:0}
-
   .ledger{margin-top:46px;border-top:1px solid var(--edge);padding-top:22px}
   .ledger h2{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-dim);margin:0 0 14px;font-weight:400}
   .ledger ol{list-style:none;margin:0;padding:0}
@@ -110,11 +88,7 @@
   .ledger li .tm{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--bone-dim);flex:none;align-self:center}
   .ledger .none{color:var(--bone-dim);font-style:italic;font-size:.95rem}
 
-  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:50;
-    display:flex;align-items:center;gap:9px;
-    background:var(--gold);color:#221a08;border:none;border-radius:999px;
-    font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:14px;letter-spacing:.02em;
-    padding:14px 22px;box-shadow:0 8px 26px rgba(0,0,0,.45);cursor:pointer}
+  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:50;display:flex;align-items:center;gap:9px;background:var(--gold);color:#221a08;border:none;border-radius:999px;font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:14px;letter-spacing:.02em;padding:14px 22px;box-shadow:0 8px 26px rgba(0,0,0,.45);cursor:pointer}
   .fab:active{transform:translateX(-50%) scale(.96)}
   .fab.start{background:var(--live);color:#06210f}
   .fab svg{flex:none}
@@ -124,7 +98,6 @@
   .arriving{animation:arrive .55s cubic-bezier(.2,.7,.2,1)}
   .loading{display:inline-block;width:14px;height:14px;border:2px solid rgba(34,26,8,.3);border-top-color:#221a08;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
   @keyframes spin{to{transform:rotate(360deg)}}
-
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));z-index:60;background:var(--night-3);color:var(--bone);border:1px solid var(--edge);border-radius:6px;padding:10px 16px;font-size:13px;max-width:88vw;text-align:center;opacity:0;transition:.3s;pointer-events:none}
   .toast.show{opacity:1}
 </style>
@@ -137,36 +110,29 @@
   </div>
 
   <div class="shell">
-    <div class="rail">
-      <svg id="minar" width="46" height="320" viewBox="0 0 46 320" aria-hidden="true"></svg>
-    </div>
+    <div class="rail"><svg id="minar" width="46" height="320" viewBox="0 0 46 320" aria-hidden="true"></svg></div>
     <main class="stage" id="stage">
+
+      <div class="vconsole">
+        <div class="vbtns">
+          <button class="vbtn talk" id="askonce">🎙 Ask once</button>
+          <button class="vbtn convo" id="convo">▶ Conversation</button>
+        </div>
+        <p class="vstat" id="vstat">Tap, then just speak. Answers are spoken back.</p>
+        <button class="keybtn" id="keybtn">Set Gemini key</button>
+      </div>
+
       <p class="eyebrow" id="eyebrow">The road ahead</p>
       <h1 class="place" id="placeName">Kos&nbsp;Minar</h1>
       <div class="bearing" id="bearing"></div>
       <img class="hero hidden" id="hero" alt="">
       <div class="known hidden" id="known"></div>
       <div class="desc empty" id="desc">
-        <p>A milestone for the road. Begin your journey and every village, town and landmark you cross opens its story here — what it is <b>known for</b>, read aloud in a native Punjabi or Hindi voice.</p>
-        <p style="font-size:.95rem">Tap 🔊 above to switch voice. Location needs HTTPS — open the deployed link in <b>Chrome</b> and allow location.</p>
+        <p>A milestone for the road. Begin your journey and every place you cross opens its story here — read aloud in a native Punjabi or Hindi voice.</p>
+        <p style="font-size:.95rem">Then tap <b>Conversation</b> and just talk — ask anything about where you are and it answers by voice. Needs <b>Chrome</b> + location + microphone.</p>
       </div>
 
       <div class="chips" id="chips"></div>
-
-      <div class="ask hidden" id="askbox">
-        <p class="lbl" id="asklbl">★ Ask about this place</p>
-        <div class="thread" id="thread"></div>
-        <div class="askrow">
-          <input id="askinput" type="text" placeholder="Ask anything…" autocomplete="off" enterkeyhint="send">
-          <button id="micbtn" class="mic" title="Speak">🎙</button>
-          <button id="asksend">Ask</button>
-        </div>
-        <div class="hfrow">
-          <button class="hfbtn" id="hfbtn">🎙️ Hands-free</button>
-          <span class="hfstat" id="hfstat"></span>
-        </div>
-        <button class="keybtn" id="keybtn">Set Gemini key</button>
-      </div>
 
       <section class="ledger">
         <h2>Crossed today · ਅੱਜ ਲੰਘੇ</h2>
@@ -186,78 +152,61 @@
 (()=>{
 "use strict";
 
-// ---------- state ----------
-const S = {
-  watchId:null, running:false,
-  last:{lat:null,lon:null,t:0},
-  lastLookup:{lat:null,lon:null,t:0},
-  currentRec:null,
-  shown:new Map(),
-  history:[],
-  prefer:"pa",                 // "pa" | "hi" | "en" — drives source order + voice
-  bearingDeg:null, speedKmh:null,
-  busy:false, wakeLock:null, chat:[],
-  speaking:false, handsfree:false, awaiting:false
+const S={
+  watchId:null,running:false,
+  last:{lat:null,lon:null,t:0},lastLookup:{lat:null,lon:null,t:0},
+  currentRec:null,shown:new Map(),history:[],
+  prefer:"pa",bearingDeg:null,speedKmh:null,
+  busy:false,wakeLock:null,chat:[],
+  speaking:false,convo:false,listening:false,asking:false
 };
-const LOOKUP_MIN_M=240, LOOKUP_MIN_MS=11000, REPEAT_BLOCK_MS=25*60*1000;
+const LOOKUP_MIN_M=240,LOOKUP_MIN_MS=11000,REPEAT_BLOCK_MS=25*60*1000;
 const LANGS={pa:{label:"ਪੰਜਾਬੀ"},hi:{label:"हिन्दी"},en:{label:"English"}};
 const ORDER=["pa","hi","en"];
+const GEMINI_MODEL="gemini-2.5-flash";
 
 const el=id=>document.getElementById(id);
 const dot=el("dot"),status=el("status"),placeName=el("placeName"),bearing=el("bearing"),
       hero=el("hero"),known=el("known"),desc=el("desc"),chips=el("chips"),ledger=el("ledger"),
       fab=el("fab"),fabtxt=el("fabtxt"),eyebrow=el("eyebrow"),langbtn=el("langbtn"),
-      langlabel=el("langlabel"),toastEl=el("toast"),minar=el("minar");
-const askbox=el("askbox"),thread=el("thread"),askinput=el("askinput"),asksend=el("asksend"),keybtn=el("keybtn"),asklbl=el("asklbl");
+      langlabel=el("langlabel"),toastEl=el("toast"),minar=el("minar"),
+      askonce=el("askonce"),convoBtn=el("convo"),vstat=el("vstat"),keybtn=el("keybtn");
 
 function save(){try{localStorage.setItem("kosminar",JSON.stringify({history:S.history,prefer:S.prefer}));}catch(e){}}
 function load(){try{const r=localStorage.getItem("kosminar");if(r){const o=JSON.parse(r);S.history=o.history||[];S.prefer=o.prefer||"pa";}}catch(e){}}
 
-// ---------- geo math ----------
 const R=6371000,rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI;
 function haversine(a,b,c,d){const dLat=rad(c-a),dLon=rad(d-b);const x=Math.sin(dLat/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
 function bearingOf(a,b,c,d){const y=Math.sin(rad(d-b))*Math.cos(rad(c));const x=Math.cos(rad(a))*Math.sin(rad(c))-Math.sin(rad(a))*Math.cos(rad(c))*Math.cos(rad(d-b));return (deg(Math.atan2(y,x))+360)%360;}
-const COMPASS=["N","NE","E","SE","S","SW","W","NW"];
-const compass8=d=>COMPASS[Math.round(d/45)%8];
+const COMPASS=["N","NE","E","SE","S","SW","W","NW"],compass8=d=>COMPASS[Math.round(d/45)%8];
 
 function setStatus(t,live){status.textContent=t;dot.classList.toggle("live",!!live);}
-let toastT;
-function toast(t){toastEl.textContent=t;toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove("show"),2800);}
+function setStat(t){vstat.textContent=t;}
+let toastT;function toast(t){toastEl.textContent=t;toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove("show"),3000);}
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function fontClass(l){return l==="hi"?"hi":l==="pa"?"pa":"";}
 
-// ---------- milestone rail ----------
 function drawMinar(){
   const n=S.history.length;
   const cap='<path d="M23 14 L33 30 L13 30 Z" fill="#c2572f"/><rect x="18" y="30" width="10" height="6" fill="#b9822a"/>';
   const shaft='<rect x="19" y="36" width="8" height="250" rx="3" fill="#1e2433" stroke="rgba(236,228,211,.12)"/>';
-  let notches="";const top=44,bottom=280,span=bottom-top,visible=Math.min(n,18);
+  let notches="";const top=44,span=236,visible=Math.min(n,18);
   for(let i=0;i<visible;i++){const y=top+span*(i/Math.max(visible,1));const lit=i>=visible-1?"#e0a83e":"#7a8557";notches+=`<line x1="14" y1="${y}" x2="32" y2="${y}" stroke="${lit}" stroke-width="2"/>`;}
   minar.innerHTML=cap+shaft+notches+`<text x="23" y="300" fill="#a59c88" font-family="IBM Plex Mono,monospace" font-size="11" text-anchor="middle">${n}</text>`;
 }
 function renderLedger(){
   if(!S.history.length){ledger.innerHTML='<li class="none">No places yet.</li>';return;}
   ledger.innerHTML="";
-  S.history.slice().reverse().slice(0,40).forEach(h=>{
-    const li=document.createElement("li");
-    const tm=new Date(h.t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-    li.innerHTML=`<span class="nm">${esc(h.name)}</span><span class="tm">${tm}</span>`;
-    li.onclick=()=>showPlace(h,true);
-    ledger.appendChild(li);
-  });
+  S.history.slice().reverse().slice(0,40).forEach(h=>{const li=document.createElement("li");const tm=new Date(h.t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});li.innerHTML=`<span class="nm">${esc(h.name)}</span><span class="tm">${tm}</span>`;li.onclick=()=>showPlace(h,true);ledger.appendChild(li);});
 }
 
-// ---------- native voice ----------
+// ---------- voices ----------
 let VOICES=[];
 function loadVoices(){try{VOICES=window.speechSynthesis.getVoices()||[];}catch(e){VOICES=[];}}
 if("speechSynthesis" in window){loadVoices();window.speechSynthesis.onvoiceschanged=loadVoices;}
-function pickVoice(lang){
-  if(!VOICES.length)loadVoices();
-  const L=lang.toLowerCase();
-  return VOICES.find(v=>v.lang&&v.lang.toLowerCase().startsWith(L+"-"))
-      || VOICES.find(v=>v.lang&&v.lang.toLowerCase()===L)
-      || VOICES.find(v=>v.lang&&v.lang.toLowerCase().startsWith(L))
-      || null;
-}
+function pickVoice(lang){if(!VOICES.length)loadVoices();const L=lang.toLowerCase();return VOICES.find(v=>v.lang&&v.lang.toLowerCase().startsWith(L+"-"))||VOICES.find(v=>v.lang&&v.lang.toLowerCase()===L)||VOICES.find(v=>v.lang&&v.lang.toLowerCase().startsWith(L))||null;}
+// language we can actually SPEAK (fall back so the user always hears something)
+function effLang(){if(pickVoice(S.prefer))return S.prefer;if(S.prefer==="pa"&&pickVoice("hi"))return "hi";return pickVoice("en")?"en":S.prefer;}
 let warnedNoPa=false;
 function speak(text,lang){
   if(!("speechSynthesis" in window)||!text)return;
@@ -265,91 +214,56 @@ function speak(text,lang){
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     const v=pickVoice(lang);
-    u.lang= lang==="hi"?"hi-IN":lang==="pa"?"pa-IN":"en-IN";
+    u.lang=lang==="hi"?"hi-IN":lang==="pa"?"pa-IN":"en-IN";
     if(v){u.voice=v;u.lang=v.lang;}
-    else if(lang==="pa"&&!warnedNoPa){warnedNoPa=true;toast("No Punjabi voice yet — add it in phone Settings › Languages › Text-to-speech");}
-    u.rate=.9;u.pitch=1;
+    else if(lang==="pa"&&!warnedNoPa){warnedNoPa=true;toast("Tip: install a Punjabi voice in Settings › Languages › Text-to-speech for full Punjabi.");}
+    u.rate=.92;u.pitch=1;
     u.onstart=()=>{S.speaking=true;stopRec();};
-    u.onend=()=>{S.speaking=false;if(S.handsfree)setTimeout(runHF,500);};
+    u.onend=()=>{S.speaking=false;if(S.convo)setTimeout(listenTurn,350);else setStat("Tap to speak again.");};
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
 
-// ---------- "known for" extraction (script-aware) ----------
+// ---------- known-for ----------
 const KW={
   pa:["ਪ੍ਰਸਿੱਧ","ਮਸ਼ਹੂਰ","ਜਾਣਿਆ","ਜਾਣੇ","ਸਭ ਤੋਂ ਵੱਡ","ਪੁਰਾਣ","ਪ੍ਰਾਚੀਨ","ਇਤਿਹਾਸਕ","ਮੰਦਰ","ਗੁਰਦੁਆਰ","ਕਿਲ੍ਹ","ਮੇਲ","ਤਿਉਹਾਰ","ਜਨਮ","ਸਥਾਪਨਾ","ਦਰਬਾਰ","ਡੇਰਾ","ਯੁੱਧ"],
   hi:["प्रसिद्ध","मशहूर","जाना जाता","जाने जाते","प्रमुख","सबसे बड़","सबसे पुरान","प्राचीन","ऐतिहासिक","मंदिर","गुरुद्वार","किल","मेला","त्योहार","जन्म","स्थापना","तीर्थ","दरबार","युद्ध"],
   en:["famous","known for","noted","renowned","largest","oldest","ancient","historic","temple","gurdwara","gurudwara","fort","fair","festival","birthplace","shrine","battle","pilgrimage","capital","headquarters"]
 };
-function splitSentences(t){
-  return t.split(/।|(?:[.!?]\s)|\n+/).map(s=>s.trim().replace(/^[•\-\s]+/,"")).filter(s=>s.length>14);
-}
-function highlights(extract,lang){
-  const sents=splitSentences(extract);if(!sents.length)return{first:"",picks:[]};
-  const kw=KW[lang]||KW.en;
-  const scored=sents.map((s,i)=>{let sc=0;const low=s.toLowerCase();kw.forEach(k=>{if(low.includes(k.toLowerCase()))sc+=2;});if(/\d/.test(s))sc+=.6;return{s,i,sc};});
-  const picks=scored.filter(x=>x.sc>0&&x.i!==0).sort((a,b)=>b.sc-a.sc).slice(0,3).sort((a,b)=>a.i-b.i).map(x=>x.s);
-  return{first:sents[0],picks};
-}
+function splitSentences(t){return t.split(/।|(?:[.!?]\s)|\n+/).map(s=>s.trim().replace(/^[•\-\s]+/,"")).filter(s=>s.length>14);}
+function highlights(extract,lang){const sents=splitSentences(extract);if(!sents.length)return{first:"",picks:[]};const kw=KW[lang]||KW.en;const scored=sents.map((s,i)=>{let sc=0;const low=s.toLowerCase();kw.forEach(k=>{if(low.includes(k.toLowerCase()))sc+=2;});if(/\d/.test(s))sc+=.6;return{s,i,sc};});const picks=scored.filter(x=>x.sc>0&&x.i!==0).sort((a,b)=>b.sc-a.sc).slice(0,3).sort((a,b)=>a.i-b.i).map(x=>x.s);return{first:sents[0],picks};}
 const KNOWN_LBL={pa:"ਮਸ਼ਹੂਰੀ · ਖ਼ਾਸ ਗੱਲਾਂ",hi:"प्रसिद्धि · खास बातें",en:"Known for"};
 
-// ---------- data sources (keyless, CORS-friendly) ----------
+// ---------- data ----------
 async function reverseGeocode(lat,lon){
   const url=`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
-  try{const r=await fetch(url);if(!r.ok)return null;const j=await r.json();
-    let district="";const admin=(j.localityInfo&&j.localityInfo.administrative)||[];
-    const cands=admin.filter(a=>a.adminLevel>=5&&a.name&&a.name!==j.principalSubdivision);
-    if(cands.length)district=cands.sort((a,b)=>b.adminLevel-a.adminLevel)[0].name;
-    return{name:j.locality||j.city||j.principalSubdivision||"",district,state:j.principalSubdivision||"",country:j.countryName||""};
-  }catch(e){return null;}
+  try{const r=await fetch(url);if(!r.ok)return null;const j=await r.json();let district="";const admin=(j.localityInfo&&j.localityInfo.administrative)||[];const cands=admin.filter(a=>a.adminLevel>=5&&a.name&&a.name!==j.principalSubdivision);if(cands.length)district=cands.sort((a,b)=>b.adminLevel-a.adminLevel)[0].name;return{name:j.locality||j.city||j.principalSubdivision||"",district,state:j.principalSubdivision||"",country:j.countryName||""};}catch(e){return null;}
 }
-async function wikiGeosearch(lat,lon,lang,radius){
-  const url=`https://${lang}.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}%7C${lon}&gsradius=${radius}&gslimit=20&format=json&origin=*`;
-  try{const r=await fetch(url);if(!r.ok)return[];const j=await r.json();return(j.query&&j.query.geosearch)||[];}catch(e){return[];}
-}
-async function wikiExtract(title,lang){
-  const url=`https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts%7Cpageimages&explaintext=1&exsectionformat=plain&piprop=original&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-  try{const r=await fetch(url);if(!r.ok)return null;const j=await r.json();const pages=j.query&&j.query.pages;if(!pages)return null;
-    const p=Object.values(pages)[0];if(!p||p.missing!==undefined)return null;
-    return{title:p.title,extract:(p.extract||"").trim(),image:p.original&&p.original.source||null,
-      url:`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.title.replace(/ /g,"_"))}`,lang};
-  }catch(e){return null;}
-}
+async function wikiGeosearch(lat,lon,lang,radius){const url=`https://${lang}.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}%7C${lon}&gsradius=${radius}&gslimit=20&format=json&origin=*`;try{const r=await fetch(url);if(!r.ok)return[];const j=await r.json();return(j.query&&j.query.geosearch)||[];}catch(e){return[];}}
+async function wikiExtract(title,lang){const url=`https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts%7Cpageimages&explaintext=1&exsectionformat=plain&piprop=original&titles=${encodeURIComponent(title)}&format=json&origin=*`;try{const r=await fetch(url);if(!r.ok)return null;const j=await r.json();const pages=j.query&&j.query.pages;if(!pages)return null;const p=Object.values(pages)[0];if(!p||p.missing!==undefined)return null;return{title:p.title,extract:(p.extract||"").trim(),image:p.original&&p.original.source||null,url:`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.title.replace(/ /g,"_"))}`,lang};}catch(e){return null;}}
 const norm=s=>(s||"").toLowerCase().replace(/[^a-z\u0a00-\u0a7f\u0900-\u097f]/g,"");
 
 async function pickCrossing(lat,lon){
   const order=[S.prefer,...ORDER.filter(l=>l!==S.prefer)];
-  const geo=await reverseGeocode(lat,lon);
-  const localName=geo&&geo.name?norm(geo.name):"";
+  const geo=await reverseGeocode(lat,lon);const localName=geo&&geo.name?norm(geo.name):"";
   let cands=[];
-  for(const lang of order){
-    let hits=await wikiGeosearch(lat,lon,lang,6000);
-    if(!hits.length)hits=await wikiGeosearch(lat,lon,lang,14000);
-    hits.forEach(h=>cands.push({title:h.title,lang,dist:h.dist}));
-  }
+  for(const lang of order){let hits=await wikiGeosearch(lat,lon,lang,6000);if(!hits.length)hits=await wikiGeosearch(lat,lon,lang,14000);hits.forEach(h=>cands.push({title:h.title,lang,dist:h.dist}));}
   if(!cands.length)return{geo,article:null};
-  // prefer the article in the preferred language that matches where we stand
   let chosen=null;
-  if(localName){
-    for(const lang of order){chosen=cands.find(c=>c.lang===lang&&(norm(c.title).includes(localName)||localName.includes(norm(c.title))));if(chosen)break;}
-  }
+  if(localName){for(const lang of order){chosen=cands.find(c=>c.lang===lang&&(norm(c.title).includes(localName)||localName.includes(norm(c.title))));if(chosen)break;}}
   if(!chosen){const pref=cands.filter(c=>c.lang===S.prefer).sort((a,b)=>a.dist-b.dist);chosen=pref[0]||cands.sort((a,b)=>a.dist-b.dist)[0];}
   const article=await wikiExtract(chosen.title,chosen.lang);
-  if(article&&article.extract.length<140){
-    for(const lang of order){if(lang===chosen.lang)continue;const alt=await wikiExtract(chosen.title,lang);if(alt&&alt.extract.length>article.extract.length)return{geo,article:alt,distance:chosen.dist};}
-  }
+  if(article&&article.extract.length<140){for(const lang of order){if(lang===chosen.lang)continue;const alt=await wikiExtract(chosen.title,lang);if(alt&&alt.extract.length>article.extract.length)return{geo,article:alt,distance:chosen.dist};}}
   return{geo,article,distance:chosen.dist};
 }
 
 // ---------- reveal ----------
-function fontClass(lang){return lang==="hi"?"hi":lang==="pa"?"pa":"";}
 function showPlace(rec,fromHistory){
-  S.currentRec=rec;
+  S.currentRec=rec;S.chat=[];
   eyebrow.textContent=[rec.district,rec.state].filter(Boolean).join(" · ")||"On the road";
   let html=esc(rec.name)+'<span class="replay">🔊</span>';
   if(rec.native&&norm(rec.native)!==norm(rec.name))html+=`<span class="native ${fontClass(rec.lang)}">${esc(rec.native)}</span>`;
-  placeName.innerHTML=html;
-  placeName.classList.remove("arriving");void placeName.offsetWidth;placeName.classList.add("arriving");
+  placeName.innerHTML=html;placeName.classList.remove("arriving");void placeName.offsetWidth;placeName.classList.add("arriving");
 
   const parts=[];
   if(rec.distance!=null){const d=rec.distance;parts.push(`<span><b>${d<1000?Math.round(d)+" m":(d/1000).toFixed(1)+" km"}</b> from centre</span>`);}
@@ -357,26 +271,14 @@ function showPlace(rec,fromHistory){
   if(S.speedKmh!=null&&S.speedKmh>2)parts.push(`<span><b>${Math.round(S.speedKmh)}</b> km/h</span>`);
   bearing.innerHTML=parts.join("");
 
-  if(rec.image){hero.src=rec.image;hero.classList.remove("hidden");hero.alt=rec.name;}
-  else{hero.classList.add("hidden");hero.removeAttribute("src");}
+  if(rec.image){hero.src=rec.image;hero.classList.remove("hidden");hero.alt=rec.name;}else{hero.classList.add("hidden");hero.removeAttribute("src");}
 
-  // known-for highlights
   let spokenExtra="";
   if(rec.extract){
-    const h=highlights(rec.extract,rec.lang);
-    const items=h.picks.length?h.picks:(h.first?[h.first]:[]);
-    if(items.length){
-      known.className="known "+fontClass(rec.lang);
-      known.innerHTML=`<p class="lbl">★ ${KNOWN_LBL[rec.lang]||KNOWN_LBL.en}</p><ul>${items.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`;
-      spokenExtra=items[0];
-    }else known.className="known hidden";
-    desc.className="desc "+fontClass(rec.lang);
-    desc.innerHTML=rec.extract.split(/\n+/).filter(Boolean).map(p=>`<p>${esc(p)}</p>`).join("");
-  }else{
-    known.className="known hidden";
-    desc.className="desc empty";
-    desc.innerHTML=`<p>${esc(rec.name)} sits in ${esc([rec.district,rec.state].filter(Boolean).join(", ")||"this area")}. No Wikipedia article yet — but you've crossed it.</p>`;
-  }
+    const h=highlights(rec.extract,rec.lang);const items=h.picks.length?h.picks:(h.first?[h.first]:[]);
+    if(items.length){known.className="known "+fontClass(rec.lang);known.innerHTML=`<p class="lbl">★ ${KNOWN_LBL[rec.lang]||KNOWN_LBL.en}</p><ul>${items.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`;spokenExtra=items[0];}else known.className="known hidden";
+    desc.className="desc "+fontClass(rec.lang);desc.innerHTML=rec.extract.split(/\n+/).filter(Boolean).map(p=>`<p>${esc(p)}</p>`).join("");
+  }else{known.className="known hidden";desc.className="desc empty";desc.innerHTML=`<p>${esc(rec.name)} sits in ${esc([rec.district,rec.state].filter(Boolean).join(", ")||"this area")}. No Wikipedia article yet — but you've crossed it.</p>`;}
 
   const c=[];
   if(rec.lat!=null)c.push(`<div class="chip">coordinates<b>${rec.lat.toFixed(4)}, ${rec.lon.toFixed(4)}</b></div>`);
@@ -384,218 +286,117 @@ function showPlace(rec,fromHistory){
   if(rec.url)c.push(`<div class="chip">source<b><a href="${rec.url}" target="_blank" rel="noopener">${rec.lang==="pa"?"ਵਿਕੀਪੀਡੀਆ":rec.lang==="hi"?"विकिपीडिया":"Wikipedia"} ↗</a></b></div>`);
   chips.innerHTML=c.join("");
 
-  S.chat=[];thread.innerHTML="";
-  asklbl.textContent=ASK_LBL[S.prefer]||ASK_LBL.en;
-  askinput.placeholder=ASK_PH[S.prefer]||ASK_PH.en;
-  askbox.classList.remove("hidden");
-
   if(!fromHistory)sayPlace(rec,spokenExtra);
   window.scrollTo({top:0,behavior:"smooth"});
 }
-function sayPlace(rec,extra){
-  const lang=rec.lang||"en";
-  const pre=lang==="pa"?"ਹੁਣ ਲੰਘ ਰਹੇ ਹਾਂ ":lang==="hi"?"अब पार कर रहे हैं ":"Now crossing ";
-  let body=extra|| (rec.extract?highlights(rec.extract,lang).first:"") ||"";
-  if(body.length>240)body=body.slice(0,240);
-  speak(pre+rec.name+"। "+body, lang);
-}
+function sayPlace(rec,extra){const lang=rec.lang||"en";const pre=lang==="pa"?"ਹੁਣ ਲੰਘ ਰਹੇ ਹਾਂ ":lang==="hi"?"अब पार कर रहे हैं ":"Now crossing ";let body=extra||(rec.extract?highlights(rec.extract,lang).first:"")||"";if(body.length>240)body=body.slice(0,240);speak(pre+rec.name+"। "+body,lang);}
 function arrow(d){return `<svg width="14" height="14" viewBox="0 0 24 24" style="transform:rotate(${d}deg)"><path d="M12 3 L18 20 L12 16 L6 20 Z" fill="currentColor"/></svg>`;}
 
 async function maybeReveal(lat,lon){
-  if(S.busy)return;S.busy=true;
-  setStatus("Reading the land…",true);fab.disabled=true;fabtxt.innerHTML='<span class="loading"></span>';
+  if(S.busy)return;S.busy=true;setStatus("Reading the land…",true);fab.disabled=true;fabtxt.innerHTML='<span class="loading"></span>';
   try{
     const {geo,article,distance}=await pickCrossing(lat,lon);
-    const title=article?article.title:(geo&&geo.name)||"Unknown";
-    const key=norm(title);const last=S.shown.get(key);
-    const fresh=!last||(Date.now()-last)>REPEAT_BLOCK_MS;
+    const title=article?article.title:(geo&&geo.name)||"Unknown";const key=norm(title);const last=S.shown.get(key);const fresh=!last||(Date.now()-last)>REPEAT_BLOCK_MS;
     if(fresh&&(article||(geo&&geo.name))){
-      const rec={
-        name:article?article.title:geo.name,
-        native:geo&&geo.name&&article&&norm(geo.name)!==norm(article.title)?geo.name:(article&&article.lang!=="en"?article.title:null),
-        title,lang:article?article.lang:"en",extract:article?article.extract:"",
-        image:article?article.image:null,url:article?article.url:null,
-        district:geo?geo.district:"",state:geo?geo.state:"",country:geo?geo.country:"",
-        lat,lon,distance,t:Date.now()
-      };
-      S.shown.set(key,Date.now());S.history.push(rec);
-      showPlace(rec,false);renderLedger();drawMinar();save();
-      toast("Crossed "+rec.name);
+      const rec={name:article?article.title:geo.name,native:geo&&geo.name&&article&&norm(geo.name)!==norm(article.title)?geo.name:(article&&article.lang!=="en"?article.title:null),title,lang:article?article.lang:"en",extract:article?article.extract:"",image:article?article.image:null,url:article?article.url:null,district:geo?geo.district:"",state:geo?geo.state:"",country:geo?geo.country:"",lat,lon,distance,t:Date.now()};
+      S.shown.set(key,Date.now());S.history.push(rec);showPlace(rec,false);renderLedger();drawMinar();save();toast("Crossed "+rec.name);
     }else setStatus("Still near "+(article?article.title:(geo&&geo.name)||"here"),true);
   }catch(e){setStatus("Couldn't read this spot — moving on",true);}
-  finally{S.busy=false;fab.disabled=false;fabtxt.textContent=S.running?"What's here now?":"Begin journey";
-    if(S.running)setStatus("Tracking · "+(S.speedKmh?Math.round(S.speedKmh)+" km/h":"on foot"),true);}
+  finally{S.busy=false;fab.disabled=false;fabtxt.textContent=S.running?"What's here now?":"Begin journey";if(S.running)setStatus("Tracking · "+(S.speedKmh?Math.round(S.speedKmh)+" km/h":"on foot"),true);}
 }
 
 // ---------- GPS ----------
 function onFix(pos){
   const {latitude:lat,longitude:lon,speed,heading}=pos.coords;const now=Date.now();
-  if(S.last.lat!=null){const d=haversine(S.last.lat,S.last.lon,lat,lon),dt=(now-S.last.t)/1000;
-    if(dt>0&&d>5){S.speedKmh=speed!=null&&!isNaN(speed)?speed*3.6:(d/dt)*3.6;S.bearingDeg=(heading!=null&&!isNaN(heading))?heading:bearingOf(S.last.lat,S.last.lon,lat,lon);}}
-  if(speed!=null&&!isNaN(speed))S.speedKmh=speed*3.6;
-  if(heading!=null&&!isNaN(heading))S.bearingDeg=heading;
+  if(S.last.lat!=null){const d=haversine(S.last.lat,S.last.lon,lat,lon),dt=(now-S.last.t)/1000;if(dt>0&&d>5){S.speedKmh=speed!=null&&!isNaN(speed)?speed*3.6:(d/dt)*3.6;S.bearingDeg=(heading!=null&&!isNaN(heading))?heading:bearingOf(S.last.lat,S.last.lon,lat,lon);}}
+  if(speed!=null&&!isNaN(speed))S.speedKmh=speed*3.6;if(heading!=null&&!isNaN(heading))S.bearingDeg=heading;
   S.last={lat,lon,t:now};
   const a=S.lastLookup,moved=a.lat==null?Infinity:haversine(a.lat,a.lon,lat,lon),waited=now-a.t;
   if(moved>=LOOKUP_MIN_M||a.lat==null||(waited>=LOOKUP_MIN_MS&&moved>60)){S.lastLookup={lat,lon,t:now};maybeReveal(lat,lon);}
   else if(S.running)setStatus("Tracking · "+(S.speedKmh?Math.round(S.speedKmh)+" km/h":"holding"),true);
 }
-function onErr(err){
-  S.running=false;fab.classList.add("start");fabtxt.textContent="Begin journey";dot.classList.remove("live");
-  releaseWake();
-  setStatus(err.code===1?"Location blocked — allow it & use HTTPS/Chrome":"Location unavailable — try again");
-  toast(err.code===1?"Permission denied":"No GPS fix yet");
-}
-// ---------- keep screen awake while travelling ----------
-async function requestWake(){
-  try{ if("wakeLock" in navigator){ S.wakeLock=await navigator.wakeLock.request("screen"); } }
-  catch(e){ toast("Couldn't hold screen awake (battery saver?)"); }
-}
-async function releaseWake(){ try{ if(S.wakeLock){ await S.wakeLock.release(); S.wakeLock=null; } }catch(e){} }
-// Android auto-drops the lock when you switch away — grab it back on return
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"&&S.running&&!S.wakeLock) requestWake();
-});
+function onErr(err){S.running=false;fab.classList.add("start");fabtxt.textContent="Begin journey";dot.classList.remove("live");releaseWake();setStatus(err.code===1?"Location blocked — allow it & use HTTPS/Chrome":"Location unavailable — try again");toast(err.code===1?"Permission denied":"No GPS fix yet");}
 
-function start(){
-  if(!("geolocation" in navigator)){toast("This device has no geolocation");return;}
-  S.running=true;fab.classList.remove("start");fabtxt.textContent="What's here now?";setStatus("Finding you…",true);
-  try{window.speechSynthesis.getVoices();}catch(e){}
-  requestWake();
-  S.watchId=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
-}
-function manualHere(){
-  if(S.last.lat!=null){S.lastLookup={lat:0,lon:0,t:0};maybeReveal(S.last.lat,S.last.lon);}
-  else navigator.geolocation.getCurrentPosition(onFix,onErr,{enableHighAccuracy:true});
-}
+async function requestWake(){try{if("wakeLock" in navigator)S.wakeLock=await navigator.wakeLock.request("screen");}catch(e){}}
+async function releaseWake(){try{if(S.wakeLock){await S.wakeLock.release();S.wakeLock=null;}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.running&&!S.wakeLock)requestWake();});
 
-// ---------- ask further questions (Gemini, key stays on this phone) ----------
-const GEMINI_MODEL="gemini-2.5-flash";
-const ASK_LBL={pa:"★ ਇਸ ਥਾਂ ਬਾਰੇ ਪੁੱਛੋ",hi:"★ इस जगह के बारे में पूछें",en:"★ Ask about this place"};
-const ASK_PH={pa:"ਕੁਝ ਵੀ ਪੁੱਛੋ…",hi:"कुछ भी पूछें…",en:"Ask anything…"};
+function start(){if(!("geolocation" in navigator)){toast("This device has no geolocation");return;}S.running=true;fab.classList.remove("start");fabtxt.textContent="What's here now?";setStatus("Finding you…",true);try{window.speechSynthesis.getVoices();}catch(e){}requestWake();S.watchId=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:5000,timeout:20000});}
+function manualHere(){if(S.last.lat!=null){S.lastLookup={lat:0,lon:0,t:0};maybeReveal(S.last.lat,S.last.lon);}else navigator.geolocation.getCurrentPosition(onFix,onErr,{enableHighAccuracy:true});}
+
+// ---------- Gemini key ----------
 function getKey(){try{return localStorage.getItem("kosminar_gkey")||"";}catch(e){return"";}}
 function setKey(k){try{localStorage.setItem("kosminar_gkey",k||"");}catch(e){}}
-function ensureKey(){
-  let k=getKey();
-  if(!k){k=prompt("Paste your Google Gemini API key.\nGet a free one at aistudio.google.com/apikey\nIt is saved only on this phone, never online.");if(k){k=k.trim();setKey(k);}}
-  return k;
-}
-function bubble(cls,html){const d=document.createElement("div");d.className="bub "+cls;d.innerHTML=html;thread.appendChild(d);d.scrollIntoView({behavior:"smooth",block:"nearest"});return d;}
-
-async function askGemini(q){
-  const key=ensureKey();if(!key){toast("No key set");return;}
-  const rec=S.currentRec;if(!rec){toast("Cross a place first");return;}
-  const lang=S.prefer;
-  const langName=lang==="pa"?"Punjabi (in Gurmukhi script)":lang==="hi"?"Hindi (in Devanagari script)":"English";
-  bubble("q",esc(q));
-  const t=bubble("a think",lang==="pa"?"ਸੋਚ ਰਿਹਾ…":lang==="hi"?"सोच रहा…":"Thinking…");
-  S.chat.push({role:"user",parts:[{text:q}]});
-  const sys=`You are a warm, knowledgeable local guide inside a travel app. The traveller is at or near "${rec.name}"${rec.district?", "+rec.district:""}${rec.state?", "+rec.state:""}, India. Answer their question about this place and its surroundings, history, religion, food or culture. Reply ONLY in ${langName}. Keep it to 3 to 5 short sentences, friendly and factual; if unsure, say so honestly. Background from Wikipedia: ${(rec.extract||"(none available)").slice(0,1800)}`;
-  try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:S.chat,generationConfig:{temperature:.6,maxOutputTokens:800}})
-    });
-    const data=await res.json();
-    if(!res.ok){
-      const m=(data.error&&data.error.message)||("Error "+res.status);
-      tedit(t,"⚠ "+m);
-      if(res.status===400||res.status===403){setKey("");tedit(t,"⚠ "+m+" — tap “Set Gemini key” to re-enter.");}
-      S.chat.pop();if(S.handsfree)setTimeout(runHF,800);return;
-    }
-    const parts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
-    const ans=parts.map(p=>p.text||"").join("").trim()||"(no answer returned)";
-    S.chat.push({role:"model",parts:[{text:ans}]});
-    t.className="bub a "+fontClass(lang);
-    t.innerHTML=esc(ans)+' <span class="say" title="Read aloud">🔊</span>';
-    const say=t.querySelector(".say");if(say)say.onclick=()=>speak(ans,lang);
-    speak(ans,lang);
-  }catch(e){tedit(t,"⚠ Network error — check your signal and try again.");S.chat.pop();if(S.handsfree)setTimeout(runHF,800);}
-}
-function tedit(node,txt){node.className="bub a";node.textContent=txt;}
-
-asksend.onclick=()=>{const q=askinput.value.trim();if(!q)return;askinput.value="";askGemini(q);};
-askinput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();asksend.click();}});
+function ensureKey(){let k=getKey();if(!k){k=prompt("Paste your Google Gemini API key.\nFree from aistudio.google.com/apikey\nSaved only on this phone, never online.");if(k){k=k.trim();setKey(k);}}return k;}
 keybtn.onclick=()=>{const k=prompt("Paste your Gemini API key (free from aistudio.google.com/apikey):",getKey());if(k!=null){setKey(k.trim());toast(k.trim()?"Key saved on this phone":"Key cleared");}};
 
-// ---------- voice: speak to it, it speaks back (Gemini Live style) ----------
+// ---------- ask Gemini (voice only, multi-turn) ----------
+async function askGemini(q){
+  const key=ensureKey();if(!key){setStat("Set your Gemini key first.");S.convo=false;syncBtns();return;}
+  const ansLang=effLang();
+  const langName=ansLang==="pa"?"Punjabi (Gurmukhi script)":ansLang==="hi"?"Hindi (Devanagari script)":"English";
+  const rec=S.currentRec;
+  const where=rec?`The traveller is at or near "${rec.name}"${rec.district?", "+rec.district:""}${rec.state?", "+rec.state:""}, India.`:"The traveller is somewhere in Punjab, India; exact place unknown.";
+  const ctx=rec&&rec.extract?` Background from Wikipedia: ${rec.extract.slice(0,1800)}`:"";
+  S.asking=true;setStat("…");
+  S.chat.push({role:"user",parts:[{text:q}]});
+  const sys=`You are a warm, knowledgeable local travel guide that talks out loud. ${where} Answer the traveller's spoken question about this place, its history, religion, food, culture or surroundings. Reply ONLY in ${langName}. Keep it to 2-4 short spoken sentences, friendly and factual; if unsure, say so. Do not use markdown, lists, or emojis — plain speech only.${ctx}`;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:S.chat,generationConfig:{temperature:.6,maxOutputTokens:700}})});
+    const data=await res.json();
+    if(!res.ok){const m=(data.error&&data.error.message)||("Error "+res.status);S.chat.pop();S.asking=false;if(res.status===400||res.status===403){setKey("");setStat("Key rejected — tap “Set Gemini key”.");toast(m);}else setStat("Error — "+m.slice(0,60));if(S.convo)setTimeout(listenTurn,1200);return;}
+    const parts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+    const ans=parts.map(p=>p.text||"").join("").trim()||"Sorry, no answer.";
+    S.chat.push({role:"model",parts:[{text:ans}]});S.asking=false;
+    setStat("🔊 "+(ansLang==="pa"?"ਬੋਲ ਰਿਹਾ…":ansLang==="hi"?"बोल रहा…":"speaking…"));
+    speak(ans,ansLang);
+  }catch(e){S.chat.pop();S.asking=false;setStat("Network error — check signal.");if(S.convo)setTimeout(listenTurn,1500);}
+}
+
+// ---------- speech recognition (turn-based, reliable) ----------
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-const micbtn=el("micbtn"),hfbtn=el("hfbtn"),hfstat=el("hfstat");
 let rec=null;
 function recLang(){return S.prefer==="pa"?"pa-IN":S.prefer==="hi"?"hi-IN":"en-IN";}
-function setHF(t){hfstat.textContent=t||"";}
-function stopRec(){try{if(rec){rec.onend=null;rec.onresult=null;rec.stop();}}catch(e){}rec=null;}
-function newRec(cont){const r=new SR();r.lang=recLang();r.continuous=cont;r.interimResults=true;r.maxAlternatives=1;return r;}
-function beep(f){try{const a=new(window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=f||880;g.gain.value=.06;o.start();o.stop(a.currentTime+.12);setTimeout(()=>a.close(),300);}catch(e){}}
-function ack(){speak(S.prefer==="pa"?"ਹਾਂ ਜੀ?":S.prefer==="hi"?"हाँ जी?":"Yes?",S.prefer);}
-
-// tap-to-talk: listen once, then ask + speak the answer
-function listenOnce(){
-  if(!SR){toast("No voice input here — open in Chrome");return;}
-  try{window.speechSynthesis.cancel();}catch(e){}
-  stopRec();rec=newRec(false);let finalT="";
-  micbtn.classList.add("listening");
-  setHF(S.prefer==="pa"?"ਸੁਣ ਰਿਹਾ…":S.prefer==="hi"?"सुन रहा…":"Listening…");
-  rec.onresult=e=>{let interim="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalT+=t;else interim+=t;}askinput.value=(finalT+interim).trim();};
-  rec.onerror=e=>{micbtn.classList.remove("listening");setHF("");if(e.error==="not-allowed")toast("Allow microphone in Chrome");};
-  rec.onend=()=>{micbtn.classList.remove("listening");setHF("");const q=(finalT||askinput.value).trim();if(q){askinput.value="";askGemini(q);}};
-  try{rec.start();}catch(e){}
+function stopRec(){try{if(rec){rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}}catch(e){}rec=null;S.listening=false;}
+function syncBtns(){
+  convoBtn.classList.toggle("on",S.convo);
+  convoBtn.textContent=S.convo?"■ End":"▶ Conversation";
+  askonce.classList.toggle("listening",S.listening&&!S.convo);
+  askonce.disabled=S.convo;
 }
-
-// hands-free: say the wake word, then your question
-const WAKE={
-  pa:["ਮੀਨਾਰ","ਮਿਨਾਰ","ਮੀਨ","ਜੈਮਿਨੀ","ਜੇਮਿਨੀ","minar","meenar","gemini"],
-  hi:["मीनार","मिनार","जैमिनी","जेमिनी","minar","meenar","gemini"],
-  en:["minar","meenar","mihnar","gemini","jemini","hey minar","ok minar"]
-};
-function hasWake(t){const low=t.toLowerCase();return (WAKE[S.prefer]||WAKE.en).find(w=>low.includes(w.toLowerCase()));}
-function stripWake(t,w){const i=t.toLowerCase().indexOf(w.toLowerCase());let s=i>=0?t.slice(i+w.length):t;return s.replace(/^[\s,।:.\-]+/,"").trim();}
-function startHF(){
-  if(!SR){toast("No voice input here — open in Chrome");return;}
-  S.handsfree=true;hfbtn.classList.add("on");beep(660);runHF();
-}
-function stopHF(){S.handsfree=false;S.awaiting=false;hfbtn.classList.remove("on");setHF("");stopRec();}
-function runHF(){
-  if(!S.handsfree||S.speaking)return;
-  stopRec();rec=newRec(true);
-  setHF(S.awaiting?(S.prefer==="pa"?"ਪੁੱਛੋ…":S.prefer==="hi"?"पूछिए…":"Ask…"):(S.prefer==="pa"?"‘ਮੀਨਾਰ’ ਕਹੋ…":S.prefer==="hi"?"‘मीनार’ बोलें…":"Say “Minar”…"));
-  rec.onresult=e=>{
-    if(S.speaking)return;
-    let fin="";for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;}
-    if(!fin.trim())return;
-    if(S.awaiting){S.awaiting=false;stopRec();askGemini(fin.trim());return;}
-    const w=hasWake(fin);
-    if(w){const q=stripWake(fin,w);if(q&&q.length>1){beep();stopRec();askGemini(q);}else{S.awaiting=true;ack();}}
+function listenTurn(){
+  if(!SR){setStat("Voice input needs Chrome.");toast("Open in Chrome for voice");S.convo=false;syncBtns();return;}
+  if(S.speaking)return;
+  stopRec();
+  rec=new SR();rec.lang=recLang();rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=1;
+  let finalT="";S.listening=true;syncBtns();
+  setStat(S.prefer==="pa"?"🎙 ਸੁਣ ਰਿਹਾ… ਬੋਲੋ":S.prefer==="hi"?"🎙 सुन रहा… बोलिए":"🎙 Listening… speak now");
+  rec.onresult=e=>{let interim="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalT+=t;else interim+=t;}if(interim)setStat("🎙 "+interim.trim());};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){S.convo=false;S.listening=false;syncBtns();setStat("Allow microphone in Chrome.");toast("Microphone blocked");}};
+  rec.onend=()=>{
+    S.listening=false;
+    const q=finalT.trim();
+    if(q){syncBtns();askGemini(q);}
+    else if(S.convo){setStat(S.prefer==="pa"?"… ਸੁਣ ਰਿਹਾ":S.prefer==="hi"?"… सुन रहा":"… listening");setTimeout(listenTurn,250);}
+    else{syncBtns();setStat("Didn't catch that — tap to try again.");}
   };
-  rec.onerror=e=>{if(e.error==="not-allowed"){toast("Allow microphone in Chrome");stopHF();}};
-  rec.onend=()=>{if(S.handsfree&&!S.speaking)setTimeout(runHF,400);};
-  try{rec.start();}catch(e){}
+  try{rec.start();}catch(e){setTimeout(()=>{try{rec&&rec.start();}catch(_){}},200);}
 }
 
-micbtn.onclick=()=>listenOnce();
-hfbtn.onclick=()=>{S.handsfree?stopHF():startHF();};
+askonce.onclick=()=>{if(S.convo)return;try{window.speechSynthesis.cancel();}catch(e){}S.convo=false;listenTurn();};
+convoBtn.onclick=()=>{
+  if(S.convo){S.convo=false;stopRec();try{window.speechSynthesis.cancel();}catch(e){}S.speaking=false;syncBtns();setStat("Conversation ended.");}
+  else{S.convo=true;try{window.speechSynthesis.getVoices();}catch(e){}syncBtns();listenTurn();}
+};
 
 // ---------- wiring ----------
 fab.onclick=()=>{if(!S.running)start();else manualHere();};
 placeName.onclick=()=>{if(S.currentRec)sayPlace(S.currentRec,"");};
-langbtn.onclick=()=>{
-  const i=ORDER.indexOf(S.prefer);S.prefer=ORDER[(i+1)%ORDER.length];
-  langlabel.textContent=LANGS[S.prefer].label;save();
-  asklbl.textContent=ASK_LBL[S.prefer]||ASK_LBL.en;
-  askinput.placeholder=ASK_PH[S.prefer]||ASK_PH.en;
-  toast("Voice & text: "+LANGS[S.prefer].label);
-  if(S.last.lat!=null)manualHere();
-};
+langbtn.onclick=()=>{const i=ORDER.indexOf(S.prefer);S.prefer=ORDER[(i+1)%ORDER.length];langlabel.textContent=LANGS[S.prefer].label;save();toast("Voice & text: "+LANGS[S.prefer].label);if(S.last.lat!=null)manualHere();};
 
-// installable manifest (kept in-page so the app stays one file)
-(function(){
-  const icon="data:image/svg+xml;base64,"+btoa('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" fill="#161b27"/><path d="M96 40 L128 96 H64 Z" fill="#c2572f"/><rect x="80" y="96" width="32" height="72" rx="6" fill="#e0a83e"/></svg>');
-  const man={name:"Kos Minar",short_name:"Kos Minar",start_url:".",display:"standalone",background_color:"#161b27",theme_color:"#161b27",icons:[{src:icon,sizes:"192x192",type:"image/svg+xml"},{src:icon,sizes:"512x512",type:"image/svg+xml"}]};
-  const l=document.createElement("link");l.rel="manifest";l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/json"}));document.head.appendChild(l);
-})();
+(function(){const icon="data:image/svg+xml;base64,"+btoa('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" fill="#161b27"/><path d="M96 40 L128 96 H64 Z" fill="#c2572f"/><rect x="80" y="96" width="32" height="72" rx="6" fill="#e0a83e"/></svg>');const man={name:"Kos Minar",short_name:"Kos Minar",start_url:".",display:"standalone",background_color:"#161b27",theme_color:"#161b27",icons:[{src:icon,sizes:"192x192",type:"image/svg+xml"},{src:icon,sizes:"512x512",type:"image/svg+xml"}]};const l=document.createElement("link");l.rel="manifest";l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/json"}));document.head.appendChild(l);})();
 
-load();
-langlabel.textContent=LANGS[S.prefer].label;
-renderLedger();drawMinar();
+load();langlabel.textContent=LANGS[S.prefer].label;renderLedger();drawMinar();
 })();
 </script>
 </body>
