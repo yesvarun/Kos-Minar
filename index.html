@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#161b27">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kos Minar">
+<title>Kos Minar — places you cross</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Spectral:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Gurmukhi:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#161b27; --night-2:#1e2433; --night-3:#262d3e;
+    --bone:#ece4d3; --bone-dim:#a59c88;
+    --gold:#e0a83e; --gold-deep:#b9822a;
+    --olive:#7a8557; --live:#5fcf80; --brick:#c2572f;
+    --edge:rgba(236,228,211,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--night); color:var(--bone);
+    font-family:"Spectral",Georgia,serif;
+    -webkit-font-smoothing:antialiased; line-height:1.6;
+    min-height:100dvh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .guj,.pa{font-family:"Noto Sans Gurmukhi","Spectral",serif}
+
+  /* status bar */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px; background:rgba(22,27,39,.86);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--edge);
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--bone-dim);flex:none;transition:.3s}
+  .dot.live{background:var(--live);box-shadow:0 0 0 0 rgba(95,207,128,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(95,207,128,.55)}70%{box-shadow:0 0 0 9px rgba(95,207,128,0)}100%{box-shadow:0 0 0 0 rgba(95,207,128,0)}}
+  .status-txt{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.04em;color:var(--bone-dim);text-transform:uppercase;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .langbtn{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;color:var(--gold);background:none;border:1px solid var(--gold-deep);border-radius:999px;padding:5px 11px;cursor:pointer}
+  .langbtn:active{transform:scale(.95)}
+
+  /* layout shell with milestone rail */
+  .shell{display:flex;max-width:760px;margin:0 auto}
+  .rail{width:46px;flex:none;position:relative;padding-top:26px}
+  .rail svg{position:sticky;top:80px}
+  .stage{flex:1;min-width:0;padding:26px 20px 140px}
+
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
+  h1.place{font-family:"Fraunces",serif;font-weight:900;font-size:clamp(2.4rem,9vw,3.8rem);line-height:1.02;margin:0 0 6px;letter-spacing:-.01em}
+  h1.place .native{display:block;font-family:"Noto Sans Gurmukhi",serif;font-weight:600;font-size:.5em;color:var(--bone-dim);margin-top:8px;letter-spacing:0;line-height:1.2}
+  .bearing{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--bone-dim);margin:14px 0 22px}
+  .bearing b{color:var(--bone);font-weight:500}
+  .compass{display:inline-flex;align-items:center;gap:6px;color:var(--gold)}
+  .compass svg{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+
+  .hero{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;background:var(--night-2);display:block;border:1px solid var(--edge);margin-bottom:26px}
+  .hero.hidden{display:none}
+
+  .desc{font-size:1.12rem;color:#ddd5c4}
+  .desc p{margin:0 0 1.05em}
+  .desc.empty{color:var(--bone-dim);font-style:italic}
+
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin:30px 0 8px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+  .chip{background:var(--night-2);border:1px solid var(--edge);border-radius:4px;padding:9px 12px;color:var(--bone-dim);line-height:1.4}
+  .chip b{color:var(--bone);font-weight:500;display:block;letter-spacing:.02em}
+  .chip a{color:var(--gold);text-decoration:none}
+
+  /* history */
+  .ledger{margin-top:46px;border-top:1px solid var(--edge);padding-top:22px}
+  .ledger h2{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-dim);margin:0 0 14px;font-weight:400}
+  .ledger ol{list-style:none;margin:0;padding:0;counter-reset:m}
+  .ledger li{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--edge);cursor:pointer}
+  .ledger li:active{opacity:.6}
+  .ledger li .nm{font-family:"Fraunces",serif;font-weight:600;font-size:1.05rem}
+  .ledger li .tm{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--bone-dim);flex:none;align-self:center}
+  .ledger .none{color:var(--bone-dim);font-style:italic;font-size:.95rem}
+
+  /* action button */
+  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:50;
+    display:flex;align-items:center;gap:9px;
+    background:var(--gold);color:#221a08;border:none;border-radius:999px;
+    font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:14px;letter-spacing:.02em;
+    padding:14px 22px;box-shadow:0 8px 26px rgba(0,0,0,.45);cursor:pointer}
+  .fab:active{transform:translateX(-50%) scale(.96)}
+  .fab.start{background:var(--live);color:#06210f}
+  .fab svg{flex:none}
+  .fab[disabled]{opacity:.55;pointer-events:none}
+
+  /* reveal animation */
+  @keyframes arrive{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:none}}
+  .arriving{animation:arrive .55s cubic-bezier(.2,.7,.2,1)}
+
+  .loading{display:inline-block;width:14px;height:14px;border:2px solid rgba(34,26,8,.3);border-top-color:#221a08;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  a.srclink{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold-deep)}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));z-index:60;background:var(--night-3);color:var(--bone);border:1px solid var(--edge);border-radius:6px;padding:10px 16px;font-size:13px;font-family:"IBM Plex Mono",monospace;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="dot" id="dot"></span>
+    <span class="status-txt" id="status">Idle — tap “Begin journey”</span>
+    <button class="langbtn" id="langbtn" title="Description language">EN ⇄ ਪੰ</button>
+  </div>
+
+  <div class="shell">
+    <div class="rail">
+      <svg id="minar" width="46" height="320" viewBox="0 0 46 320" aria-hidden="true"></svg>
+    </div>
+    <main class="stage" id="stage">
+      <p class="eyebrow" id="eyebrow">The road ahead</p>
+      <h1 class="place" id="placeName">Kos&nbsp;Minar</h1>
+      <div class="bearing" id="bearing"></div>
+      <img class="hero hidden" id="hero" alt="">
+      <div class="desc empty" id="desc">
+        <p>This is a milestone for the road. Begin your journey and every village, town and landmark you cross will open its full story here — drawn from Wikipedia, in English and ਪੰਜਾਬੀ.</p>
+        <p style="font-size:.95rem">Location only works over HTTPS. On your phone open the deployed link in <b>Chrome</b> and allow location when asked.</p>
+      </div>
+
+      <div class="chips" id="chips"></div>
+
+      <section class="ledger">
+        <h2>Crossed today · ਅੱਜ ਲੰਘੇ</h2>
+        <ol id="ledger"><li class="none">No places yet.</li></ol>
+      </section>
+    </main>
+  </div>
+
+  <button class="fab start" id="fab">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg>
+    <span id="fabtxt">Begin journey</span>
+  </button>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+"use strict";
+
+// ---------- state ----------
+const S = {
+  watchId:null, running:false,
+  last:{lat:null,lon:null,t:0},      // last GPS fix used for speed/bearing
+  lastLookup:{lat:null,lon:null,t:0},// last place lookup anchor
+  currentTitle:null,                 // title currently shown
+  shown:new Map(),                   // title -> timestamp (avoid repeats)
+  history:[],                        // [{name,native,title,lang,lat,lon,t,url}]
+  prefer:"en",                       // "en" or "pa"
+  bearingDeg:null, speedKmh:null,
+  busy:false
+};
+const LOOKUP_MIN_M = 240;   // move at least this far before a new lookup
+const LOOKUP_MIN_MS = 11000;// or wait this long
+const REPEAT_BLOCK_MS = 25*60*1000; // don't re-reveal same place within 25 min
+
+// ---------- elements ----------
+const el = id => document.getElementById(id);
+const dot=el("dot"), status=el("status"), placeName=el("placeName"),
+      bearing=el("bearing"), hero=el("hero"), desc=el("desc"),
+      chips=el("chips"), ledger=el("ledger"), fab=el("fab"),
+      fabtxt=el("fabtxt"), eyebrow=el("eyebrow"), langbtn=el("langbtn"),
+      toastEl=el("toast"), minar=el("minar");
+
+// ---------- persistence (guarded; works on deployed site, no-op if blocked) ----------
+function save(){ try{ localStorage.setItem("kosminar", JSON.stringify({history:S.history,prefer:S.prefer})); }catch(e){} }
+function load(){ try{ const r=localStorage.getItem("kosminar"); if(r){ const o=JSON.parse(r); S.history=o.history||[]; S.prefer=o.prefer||"en"; } }catch(e){} }
+
+// ---------- math ----------
+const R=6371000, rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+function haversine(a,b,c,d){const dLat=rad(c-a),dLon=rad(d-b);const x=Math.sin(dLat/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+function bearingOf(a,b,c,d){const y=Math.sin(rad(d-b))*Math.cos(rad(c));const x=Math.cos(rad(a))*Math.sin(rad(c))-Math.sin(rad(a))*Math.cos(rad(c))*Math.cos(rad(d-b));return (deg(Math.atan2(y,x))+360)%360;}
+const COMPASS=["N","NE","E","SE","S","SW","W","NW"];
+const compass8 = d => COMPASS[Math.round(d/45)%8];
+
+// ---------- ui helpers ----------
+function setStatus(t,live){status.textContent=t;dot.classList.toggle("live",!!live);}
+let toastT;
+function toast(t){toastEl.textContent=t;toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove("show"),2600);}
+
+// milestone rail — a kos minar that gains a notch per crossing
+function drawMinar(){
+  const n=S.history.length;
+  const cap='<path d="M23 14 L33 30 L13 30 Z" fill="#c2572f"/><rect x="18" y="30" width="10" height="6" fill="#b9822a"/>';
+  let shaft='<rect x="19" y="36" width="8" height="250" rx="3" fill="#1e2433" stroke="rgba(236,228,211,.12)"/>';
+  let notches="";
+  const top=44, bottom=280, span=bottom-top;
+  const visible=Math.min(n,18);
+  for(let i=0;i<visible;i++){
+    const y= top + (span)*(i/Math.max(visible,1));
+    const lit = i>=visible-1 ? "#e0a83e" : "#7a8557";
+    notches+=`<line x1="14" y1="${y}" x2="32" y2="${y}" stroke="${lit}" stroke-width="2"/>`;
+  }
+  const label=`<text x="23" y="300" fill="#a59c88" font-family="IBM Plex Mono,monospace" font-size="11" text-anchor="middle">${n}</text>`;
+  minar.innerHTML=cap+shaft+notches+label;
+}
+
+function renderLedger(){
+  if(!S.history.length){ledger.innerHTML='<li class="none">No places yet.</li>';return;}
+  ledger.innerHTML="";
+  S.history.slice().reverse().slice(0,40).forEach(h=>{
+    const li=document.createElement("li");
+    const tm=new Date(h.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    li.innerHTML=`<span class="nm">${esc(h.name)}</span><span class="tm">${tm}</span>`;
+    li.onclick=()=>showPlace(h,true);
+    ledger.appendChild(li);
+  });
+}
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------- speech ----------
+function speak(name, blurb){
+  try{
+    if(!("speechSynthesis" in window))return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance("Now crossing "+name+". "+ (blurb||""));
+    u.rate=.96; u.pitch=1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ---------- data sources (all CORS-friendly from a browser) ----------
+async function reverseGeocode(lat,lon){
+  // BigDataCloud free client endpoint — no key, returns admin hierarchy
+  const url=`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+  try{
+    const r=await fetch(url); if(!r.ok)return null; const j=await r.json();
+    let district="";
+    const admin=(j.localityInfo&&j.localityInfo.administrative)||[];
+    // district is usually adminLevel 5 or 6 in India; pick the most specific that isn't the state
+    const cands=admin.filter(a=>a.adminLevel>=5&&a.name&&a.name!==j.principalSubdivision);
+    if(cands.length) district=cands.sort((a,b)=>b.adminLevel-a.adminLevel)[0].name;
+    return {
+      name: j.locality || j.city || j.principalSubdivision || "",
+      district, state:j.principalSubdivision||"", country:j.countryName||""
+    };
+  }catch(e){return null;}
+}
+
+async function wikiGeosearch(lat,lon,lang,radius){
+  const url=`https://${lang}.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}%7C${lon}&gsradius=${radius}&gslimit=20&format=json&origin=*`;
+  try{const r=await fetch(url);if(!r.ok)return [];const j=await r.json();return (j.query&&j.query.geosearch)||[];}catch(e){return [];}
+}
+
+async function wikiExtract(title,lang){
+  const url=`https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts%7Cpageimages%7Ccoordinates&explaintext=1&exsectionformat=plain&piprop=original&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+  try{
+    const r=await fetch(url);if(!r.ok)return null;const j=await r.json();
+    const pages=j.query&&j.query.pages; if(!pages)return null;
+    const p=Object.values(pages)[0]; if(!p||p.missing!==undefined)return null;
+    return {
+      title:p.title,
+      extract:(p.extract||"").trim(),
+      image:p.original&&p.original.source||null,
+      url:`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.title.replace(/ /g,"_"))}`,
+      lang
+    };
+  }catch(e){return null;}
+}
+
+// normalise for fuzzy matching place name to article title
+const norm=s=>(s||"").toLowerCase().replace(/[^a-z\u0a00-\u0a7f]/g,"");
+
+// pick the best place we're "crossing" right now
+async function pickCrossing(lat,lon){
+  const order = S.prefer==="pa" ? ["pa","en"] : ["en","pa"];
+  const geo = await reverseGeocode(lat,lon);
+  const localName = geo && geo.name ? norm(geo.name) : "";
+
+  // gather candidate articles from both wikis, nearest-first
+  let cands=[];
+  for(const lang of order){
+    let hits=await wikiGeosearch(lat,lon,lang,6000);
+    if(!hits.length) hits=await wikiGeosearch(lat,lon,lang,14000);
+    hits.forEach(h=>cands.push({title:h.title,lang,dist:h.dist}));
+  }
+  if(!cands.length) return {geo,article:null};
+
+  // prefer an article whose title matches the locality we're standing in
+  let chosen=null;
+  if(localName){
+    chosen = cands.find(c=>{const t=norm(c.title);return t.includes(localName)||localName.includes(t);});
+  }
+  // else nearest article (already nearest from each wiki; sort overall)
+  if(!chosen){ cands.sort((a,b)=>a.dist-b.dist); chosen=cands[0]; }
+
+  const article=await wikiExtract(chosen.title,chosen.lang);
+  // if preferred-language extract is thin, try the other language for richer text
+  if(article && article.extract.length<160){
+    const other = chosen.lang==="en"?"pa":"en";
+    const alt=await wikiExtract(chosen.title,other);
+    if(alt && alt.extract.length>article.extract.length){ alt.altOf=article; return {geo,article:alt,distance:chosen.dist}; }
+  }
+  return {geo,article,distance:chosen.dist};
+}
+
+// ---------- reveal ----------
+function showPlace(rec, fromHistory){
+  S.currentTitle=rec.title||rec.name;
+  eyebrow.textContent = [rec.district,rec.state].filter(Boolean).join(" · ") || "On the road";
+  // name + native
+  let html=esc(rec.name);
+  if(rec.native && norm(rec.native)!==norm(rec.name)) html+=`<span class="native">${esc(rec.native)}</span>`;
+  placeName.innerHTML=html;
+  placeName.classList.remove("arriving"); void placeName.offsetWidth; placeName.classList.add("arriving");
+
+  // bearing / distance line
+  const parts=[];
+  if(rec.distance!=null){const d=rec.distance; parts.push(`<span><b>${d<1000?Math.round(d)+" m":(d/1000).toFixed(1)+" km"}</b> from centre</span>`);}
+  if(S.bearingDeg!=null) parts.push(`<span class="compass">${arrowSvg(S.bearingDeg)} heading <b>${compass8(S.bearingDeg)}</b></span>`);
+  if(S.speedKmh!=null && S.speedKmh>2) parts.push(`<span><b>${Math.round(S.speedKmh)}</b> km/h</span>`);
+  bearing.innerHTML=parts.join("");
+
+  // image
+  if(rec.image){hero.src=rec.image;hero.classList.remove("hidden");hero.alt=rec.name;}
+  else{hero.classList.add("hidden");hero.removeAttribute("src");}
+
+  // description
+  if(rec.extract){
+    desc.classList.remove("empty");
+    desc.innerHTML=rec.extract.split(/\n+/).filter(Boolean).map(p=>`<p>${esc(p)}</p>`).join("");
+    if(rec.lang==="pa") desc.classList.add("pa"); else desc.classList.remove("pa");
+  }else{
+    desc.classList.add("empty");
+    desc.innerHTML=`<p>${esc(rec.name)} sits in ${esc([rec.district,rec.state].filter(Boolean).join(", ")||"this area")}. No Wikipedia article was found for it yet — but you've still crossed it.</p>`;
+  }
+
+  // chips
+  const c=[];
+  if(rec.lat!=null) c.push(`<div class="chip">coordinates<b>${rec.lat.toFixed(4)}, ${rec.lon.toFixed(4)}</b></div>`);
+  if(rec.district||rec.state) c.push(`<div class="chip">administration<b>${esc([rec.district,rec.state,rec.country].filter(Boolean).join(" · "))}</b></div>`);
+  if(rec.url) c.push(`<div class="chip">source<b><a href="${rec.url}" target="_blank" rel="noopener">${rec.lang==="pa"?"ਵਿਕੀਪੀਡੀਆ":"Wikipedia"} ↗</a></b></div>`);
+  chips.innerHTML=c.join("");
+
+  if(!fromHistory){ speak(rec.name, (rec.extract||"").slice(0,180)); }
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function arrowSvg(deg){return `<svg width="14" height="14" viewBox="0 0 24 24" style="transform:rotate(${deg}deg)"><path d="M12 3 L18 20 L12 16 L6 20 Z" fill="currentColor"/></svg>`;}
+
+async function maybeReveal(lat,lon){
+  if(S.busy) return;
+  S.busy=true;
+  setStatus("Reading the land…",true);
+  fab.disabled=true; fabtxt.innerHTML='<span class="loading"></span>';
+  try{
+    const {geo,article,distance}=await pickCrossing(lat,lon);
+    const title = article?article.title:(geo&&geo.name)||"Unknown";
+    const key = norm(title);
+    const lastSeen=S.shown.get(key);
+    const fresh = !lastSeen || (Date.now()-lastSeen)>REPEAT_BLOCK_MS;
+
+    if(fresh && (article || (geo&&geo.name))){
+      const rec={
+        name: article?article.title:geo.name,
+        native: geo&&geo.name&&article&&norm(geo.name)!==norm(article.title)?geo.name:(article&&article.lang==="pa"?article.title:null),
+        title, lang:article?article.lang:"en",
+        extract:article?article.extract:"",
+        image:article?article.image:null,
+        url:article?article.url:null,
+        district:geo?geo.district:"", state:geo?geo.state:"", country:geo?geo.country:"",
+        lat, lon, distance:distance, t:Date.now()
+      };
+      S.shown.set(key,Date.now());
+      S.history.push(rec);
+      showPlace(rec,false);
+      renderLedger(); drawMinar(); save();
+      toast("Crossed "+rec.name);
+    }else{
+      setStatus("Still near "+ (article?article.title:(geo&&geo.name)||"here"), true);
+    }
+  }catch(e){
+    setStatus("Couldn't read this spot — moving on",true);
+  }finally{
+    S.busy=false; fab.disabled=false; fabtxt.textContent= S.running?"What's here now?":"Begin journey";
+    if(S.running) setStatus("Tracking · "+(S.speedKmh?Math.round(S.speedKmh)+" km/h":"on foot"),true);
+  }
+}
+
+// ---------- GPS ----------
+function onFix(pos){
+  const {latitude:lat,longitude:lon,speed,heading}=pos.coords;
+  const now=Date.now();
+  // speed + bearing from deltas if device doesn't supply them
+  if(S.last.lat!=null){
+    const d=haversine(S.last.lat,S.last.lon,lat,lon);
+    const dt=(now-S.last.t)/1000;
+    if(dt>0 && d>5){
+      S.speedKmh = speed!=null && !isNaN(speed) ? speed*3.6 : (d/dt)*3.6;
+      S.bearingDeg = (heading!=null && !isNaN(heading)) ? heading : bearingOf(S.last.lat,S.last.lon,lat,lon);
+    }
+  }
+  if(speed!=null&&!isNaN(speed)) S.speedKmh=speed*3.6;
+  if(heading!=null&&!isNaN(heading)) S.bearingDeg=heading;
+  S.last={lat,lon,t:now};
+
+  // decide whether to do a fresh lookup
+  const a=S.lastLookup;
+  const moved = a.lat==null?Infinity:haversine(a.lat,a.lon,lat,lon);
+  const waited = now-a.t;
+  if(moved>=LOOKUP_MIN_M || (a.lat==null) || waited>=LOOKUP_MIN_MS && moved>60){
+    S.lastLookup={lat,lon,t:now};
+    maybeReveal(lat,lon);
+  }else if(S.running){
+    setStatus("Tracking · "+(S.speedKmh?Math.round(S.speedKmh)+" km/h":"holding"),true);
+  }
+}
+function onErr(err){
+  S.running=false; fab.classList.add("start"); fabtxt.textContent="Begin journey"; dot.classList.remove("live");
+  if(err.code===1) setStatus("Location blocked — allow it & use HTTPS/Chrome");
+  else setStatus("Location unavailable — try again");
+  toast(err.code===1?"Permission denied":"No GPS fix yet");
+}
+
+function start(){
+  if(!("geolocation" in navigator)){toast("This device has no geolocation");return;}
+  S.running=true; fab.classList.remove("start"); fabtxt.textContent="What's here now?";
+  setStatus("Finding you…",true);
+  // warm up speech on user gesture (mobile requires it)
+  try{speechSynthesis.getVoices();}catch(e){}
+  S.watchId=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+}
+function manualHere(){
+  if(S.last.lat!=null){ S.lastLookup={lat:0,lon:0,t:0}; maybeReveal(S.last.lat,S.last.lon); }
+  else navigator.geolocation.getCurrentPosition(onFix,onErr,{enableHighAccuracy:true});
+}
+
+// ---------- wiring ----------
+fab.onclick=()=>{ if(!S.running) start(); else manualHere(); };
+langbtn.onclick=()=>{ S.prefer=S.prefer==="en"?"pa":"en"; langbtn.textContent=S.prefer==="en"?"EN ⇄ ਪੰ":"ਪੰ ⇄ EN"; save(); toast(S.prefer==="en"?"Preferring English":"ਪੰਜਾਬੀ ਨੂੰ ਤਰਜੀਹ"); if(S.last.lat!=null){S.lastLookup={lat:0,lon:0,t:0};manualHere();} };
+
+// installable manifest (built in-page so the whole app stays one file)
+(function(){
+  const icon="data:image/svg+xml;base64,"+btoa('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" fill="#161b27"/><path d="M96 40 L128 96 H64 Z" fill="#c2572f"/><rect x="80" y="96" width="32" height="72" rx="6" fill="#e0a83e"/></svg>');
+  const man={name:"Kos Minar",short_name:"Kos Minar",start_url:".",display:"standalone",background_color:"#161b27",theme_color:"#161b27",icons:[{src:icon,sizes:"192x192",type:"image/svg+xml"},{src:icon,sizes:"512x512",type:"image/svg+xml"}]};
+  const l=document.createElement("link");l.rel="manifest";
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/json"}));
+  document.head.appendChild(l);
+})();
+
+load();
+langbtn.textContent=S.prefer==="en"?"EN ⇄ ਪੰ":"ਪੰ ⇄ EN";
+renderLedger(); drawMinar();
+})();
+</script>
+</body>
+</html>
