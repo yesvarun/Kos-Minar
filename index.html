@@ -77,6 +77,23 @@
   .chip b{color:var(--bone);font-weight:500;display:block;letter-spacing:.02em}
   .chip a{color:var(--gold);text-decoration:none}
 
+  /* ask (Gemini) */
+  .ask{margin-top:42px;border-top:1px solid var(--edge);padding-top:22px}
+  .ask.hidden{display:none}
+  .ask .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px}
+  .thread{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+  .bub{padding:11px 14px;border-radius:12px;font-size:1.02rem;line-height:1.55;max-width:92%;word-wrap:break-word}
+  .bub.q{align-self:flex-end;background:var(--gold);color:#221a08;border-bottom-right-radius:3px}
+  .bub.a{align-self:flex-start;background:var(--night-2);border:1px solid var(--edge);color:#e4dcca;border-bottom-left-radius:3px}
+  .bub.think{color:var(--bone-dim);font-style:italic}
+  .bub .say{color:var(--gold);cursor:pointer;margin-left:6px}
+  .askrow{display:flex;gap:8px}
+  .askrow input{flex:1;min-width:0;background:var(--night-2);border:1px solid var(--edge);border-radius:999px;padding:12px 16px;color:var(--bone);font-family:"Spectral",serif;font-size:1rem}
+  .askrow input:focus{outline:none;border-color:var(--gold-deep)}
+  .askrow button{flex:none;background:var(--gold);color:#221a08;border:none;border-radius:999px;padding:0 20px;font-family:"IBM Plex Mono",monospace;font-weight:500;cursor:pointer}
+  .askrow button:active{transform:scale(.96)}
+  .keybtn{margin-top:12px;background:none;border:none;color:var(--bone-dim);font-family:"IBM Plex Mono",monospace;font-size:11px;text-decoration:underline;cursor:pointer;padding:0}
+
   .ledger{margin-top:46px;border-top:1px solid var(--edge);padding-top:22px}
   .ledger h2{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-dim);margin:0 0 14px;font-weight:400}
   .ledger ol{list-style:none;margin:0;padding:0}
@@ -129,6 +146,16 @@
 
       <div class="chips" id="chips"></div>
 
+      <div class="ask hidden" id="askbox">
+        <p class="lbl" id="asklbl">★ Ask about this place</p>
+        <div class="thread" id="thread"></div>
+        <div class="askrow">
+          <input id="askinput" type="text" placeholder="Ask anything…" autocomplete="off" enterkeyhint="send">
+          <button id="asksend">Ask</button>
+        </div>
+        <button class="keybtn" id="keybtn">Set Gemini key</button>
+      </div>
+
       <section class="ledger">
         <h2>Crossed today · ਅੱਜ ਲੰਘੇ</h2>
         <ol id="ledger"><li class="none">No places yet.</li></ol>
@@ -157,7 +184,7 @@ const S = {
   history:[],
   prefer:"pa",                 // "pa" | "hi" | "en" — drives source order + voice
   bearingDeg:null, speedKmh:null,
-  busy:false
+  busy:false, wakeLock:null, chat:[]
 };
 const LOOKUP_MIN_M=240, LOOKUP_MIN_MS=11000, REPEAT_BLOCK_MS=25*60*1000;
 const LANGS={pa:{label:"ਪੰਜਾਬੀ"},hi:{label:"हिन्दी"},en:{label:"English"}};
@@ -168,6 +195,7 @@ const dot=el("dot"),status=el("status"),placeName=el("placeName"),bearing=el("be
       hero=el("hero"),known=el("known"),desc=el("desc"),chips=el("chips"),ledger=el("ledger"),
       fab=el("fab"),fabtxt=el("fabtxt"),eyebrow=el("eyebrow"),langbtn=el("langbtn"),
       langlabel=el("langlabel"),toastEl=el("toast"),minar=el("minar");
+const askbox=el("askbox"),thread=el("thread"),askinput=el("askinput"),asksend=el("asksend"),keybtn=el("keybtn"),asklbl=el("asklbl");
 
 function save(){try{localStorage.setItem("kosminar",JSON.stringify({history:S.history,prefer:S.prefer}));}catch(e){}}
 function load(){try{const r=localStorage.getItem("kosminar");if(r){const o=JSON.parse(r);S.history=o.history||[];S.prefer=o.prefer||"pa";}}catch(e){}}
@@ -341,6 +369,11 @@ function showPlace(rec,fromHistory){
   if(rec.url)c.push(`<div class="chip">source<b><a href="${rec.url}" target="_blank" rel="noopener">${rec.lang==="pa"?"ਵਿਕੀਪੀਡੀਆ":rec.lang==="hi"?"विकिपीडिया":"Wikipedia"} ↗</a></b></div>`);
   chips.innerHTML=c.join("");
 
+  S.chat=[];thread.innerHTML="";
+  asklbl.textContent=ASK_LBL[S.prefer]||ASK_LBL.en;
+  askinput.placeholder=ASK_PH[S.prefer]||ASK_PH.en;
+  askbox.classList.remove("hidden");
+
   if(!fromHistory)sayPlace(rec,spokenExtra);
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -393,13 +426,26 @@ function onFix(pos){
 }
 function onErr(err){
   S.running=false;fab.classList.add("start");fabtxt.textContent="Begin journey";dot.classList.remove("live");
+  releaseWake();
   setStatus(err.code===1?"Location blocked — allow it & use HTTPS/Chrome":"Location unavailable — try again");
   toast(err.code===1?"Permission denied":"No GPS fix yet");
 }
+// ---------- keep screen awake while travelling ----------
+async function requestWake(){
+  try{ if("wakeLock" in navigator){ S.wakeLock=await navigator.wakeLock.request("screen"); } }
+  catch(e){ toast("Couldn't hold screen awake (battery saver?)"); }
+}
+async function releaseWake(){ try{ if(S.wakeLock){ await S.wakeLock.release(); S.wakeLock=null; } }catch(e){} }
+// Android auto-drops the lock when you switch away — grab it back on return
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&S.running&&!S.wakeLock) requestWake();
+});
+
 function start(){
   if(!("geolocation" in navigator)){toast("This device has no geolocation");return;}
   S.running=true;fab.classList.remove("start");fabtxt.textContent="What's here now?";setStatus("Finding you…",true);
   try{window.speechSynthesis.getVoices();}catch(e){}
+  requestWake();
   S.watchId=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
 }
 function manualHere(){
@@ -407,12 +453,63 @@ function manualHere(){
   else navigator.geolocation.getCurrentPosition(onFix,onErr,{enableHighAccuracy:true});
 }
 
+// ---------- ask further questions (Gemini, key stays on this phone) ----------
+const GEMINI_MODEL="gemini-2.5-flash";
+const ASK_LBL={pa:"★ ਇਸ ਥਾਂ ਬਾਰੇ ਪੁੱਛੋ",hi:"★ इस जगह के बारे में पूछें",en:"★ Ask about this place"};
+const ASK_PH={pa:"ਕੁਝ ਵੀ ਪੁੱਛੋ…",hi:"कुछ भी पूछें…",en:"Ask anything…"};
+function getKey(){try{return localStorage.getItem("kosminar_gkey")||"";}catch(e){return"";}}
+function setKey(k){try{localStorage.setItem("kosminar_gkey",k||"");}catch(e){}}
+function ensureKey(){
+  let k=getKey();
+  if(!k){k=prompt("Paste your Google Gemini API key.\nGet a free one at aistudio.google.com/apikey\nIt is saved only on this phone, never online.");if(k){k=k.trim();setKey(k);}}
+  return k;
+}
+function bubble(cls,html){const d=document.createElement("div");d.className="bub "+cls;d.innerHTML=html;thread.appendChild(d);d.scrollIntoView({behavior:"smooth",block:"nearest"});return d;}
+
+async function askGemini(q){
+  const key=ensureKey();if(!key){toast("No key set");return;}
+  const rec=S.currentRec;if(!rec){toast("Cross a place first");return;}
+  const lang=S.prefer;
+  const langName=lang==="pa"?"Punjabi (in Gurmukhi script)":lang==="hi"?"Hindi (in Devanagari script)":"English";
+  bubble("q",esc(q));
+  const t=bubble("a think",lang==="pa"?"ਸੋਚ ਰਿਹਾ…":lang==="hi"?"सोच रहा…":"Thinking…");
+  S.chat.push({role:"user",parts:[{text:q}]});
+  const sys=`You are a warm, knowledgeable local guide inside a travel app. The traveller is at or near "${rec.name}"${rec.district?", "+rec.district:""}${rec.state?", "+rec.state:""}, India. Answer their question about this place and its surroundings, history, religion, food or culture. Reply ONLY in ${langName}. Keep it to 3 to 5 short sentences, friendly and factual; if unsure, say so honestly. Background from Wikipedia: ${(rec.extract||"(none available)").slice(0,1800)}`;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:S.chat,generationConfig:{temperature:.6,maxOutputTokens:800}})
+    });
+    const data=await res.json();
+    if(!res.ok){
+      const m=(data.error&&data.error.message)||("Error "+res.status);
+      tedit(t,"⚠ "+m);
+      if(res.status===400||res.status===403){setKey("");tedit(t,"⚠ "+m+" — tap “Set Gemini key” to re-enter.");}
+      S.chat.pop();return;
+    }
+    const parts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+    const ans=parts.map(p=>p.text||"").join("").trim()||"(no answer returned)";
+    S.chat.push({role:"model",parts:[{text:ans}]});
+    t.className="bub a "+fontClass(lang);
+    t.innerHTML=esc(ans)+' <span class="say" title="Read aloud">🔊</span>';
+    const say=t.querySelector(".say");if(say)say.onclick=()=>speak(ans,lang);
+    speak(ans,lang);
+  }catch(e){tedit(t,"⚠ Network error — check your signal and try again.");S.chat.pop();}
+}
+function tedit(node,txt){node.className="bub a";node.textContent=txt;}
+
+asksend.onclick=()=>{const q=askinput.value.trim();if(!q)return;askinput.value="";askGemini(q);};
+askinput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();asksend.click();}});
+keybtn.onclick=()=>{const k=prompt("Paste your Gemini API key (free from aistudio.google.com/apikey):",getKey());if(k!=null){setKey(k.trim());toast(k.trim()?"Key saved on this phone":"Key cleared");}};
+
 // ---------- wiring ----------
 fab.onclick=()=>{if(!S.running)start();else manualHere();};
 placeName.onclick=()=>{if(S.currentRec)sayPlace(S.currentRec,"");};
 langbtn.onclick=()=>{
   const i=ORDER.indexOf(S.prefer);S.prefer=ORDER[(i+1)%ORDER.length];
   langlabel.textContent=LANGS[S.prefer].label;save();
+  asklbl.textContent=ASK_LBL[S.prefer]||ASK_LBL.en;
+  askinput.placeholder=ASK_PH[S.prefer]||ASK_PH.en;
   toast("Voice & text: "+LANGS[S.prefer].label);
   if(S.last.lat!=null)manualHere();
 };
