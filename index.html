@@ -243,18 +243,61 @@ async function wikiGeosearch(lat,lon,lang,radius){const url=`https://${lang}.wik
 async function wikiExtract(title,lang){const url=`https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts%7Cpageimages&explaintext=1&exsectionformat=plain&piprop=original&titles=${encodeURIComponent(title)}&format=json&origin=*`;try{const r=await fetch(url);if(!r.ok)return null;const j=await r.json();const pages=j.query&&j.query.pages;if(!pages)return null;const p=Object.values(pages)[0];if(!p||p.missing!==undefined)return null;return{title:p.title,extract:(p.extract||"").trim(),image:p.original&&p.original.source||null,url:`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.title.replace(/ /g,"_"))}`,lang};}catch(e){return null;}}
 const norm=s=>(s||"").toLowerCase().replace(/[^a-z\u0a00-\u0a7f\u0900-\u097f]/g,"");
 
-async function pickCrossing(lat,lon){
+// precise reverse geocoding — Nominatim (village/town level), BigDataCloud fallback
+async function nominatim(lat,lon){
+  const url=`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1&accept-language=en`;
+  const r=await fetch(url);if(!r.ok)return null;const j=await r.json();const a=j.address||{};
+  const settlement=a.village||a.hamlet||a.town||a.suburb||a.neighbourhood||a.city||a.municipality||a.county||j.name||"";
+  const district=a.state_district||a.county||a.district||"";
+  return{settlement,district,state:a.state||"",country:a.country||"",addressLine:j.display_name||""};
+}
+async function reverseGeocode2(lat,lon){
+  try{const n=await nominatim(lat,lon);if(n&&n.settlement)return n;}catch(e){}
+  try{const b=await reverseGeocode(lat,lon);if(b&&b.name)return{settlement:b.name,district:b.district,state:b.state,country:b.country,addressLine:[b.name,b.district,b.state].filter(Boolean).join(", ")};}catch(e){}
+  return null;
+}
+
+const BAD=/constituency|assembly|vidhan|lok sabha|tehsil|district|block|mandal|taluk|division|railway station/i;
+async function wikiSearchTitle(q,lang){
+  const url=`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=3&format=json&origin=*`;
+  try{const r=await fetch(url);if(!r.ok)return null;const j=await r.json();const s=j.query&&j.query.search;return s&&s.length?s[0].title:null;}catch(e){return null;}
+}
+// Wikipedia ONLY if a page truly matches this settlement (not a nearby notable thing / constituency)
+async function wikiForSettlement(name,lat,lon,order){
+  const nn=norm(name);if(nn.length<3)return null;
+  for(const lang of order){
+    const hits=await wikiGeosearch(lat,lon,lang,3000);
+    const m=hits.find(h=>!BAD.test(h.title)&&(norm(h.title).includes(nn)||nn.includes(norm(h.title))));
+    if(m){const ex=await wikiExtract(m.title,lang);if(ex&&ex.extract&&!BAD.test(ex.title))return ex;}
+  }
+  for(const lang of order){
+    const t=await wikiSearchTitle(name,lang);
+    if(t&&!BAD.test(t)){const ex=await wikiExtract(t,lang);if(ex&&ex.extract&&(norm(ex.title).includes(nn)||nn.includes(norm(ex.title))))return ex;}
+  }
+  return null;
+}
+// Google-search the place via Gemini grounding when Wikipedia has nothing
+async function geminiDescribe(loc){
+  const key=getKey();if(!key)return null;
+  const ansLang=effLang();
+  const langName=ansLang==="pa"?"Punjabi (Gurmukhi script)":ansLang==="hi"?"Hindi (Devanagari script)":"English";
+  const place=[loc.settlement,loc.district,loc.state,"India"].filter(Boolean).join(", ");
+  const prompt=`Search the web for "${place}" and describe this exact place for a traveller passing through it right now. In 3 to 4 short spoken sentences, say what it is and what it is known for — its history, any gurdwaras or temples, agriculture, fairs, or notable people. If little is known, say it is a small village/town in ${loc.district||"this area"}. Reply ONLY in ${langName}. Plain speech only: no markdown, no lists, no citation numbers.`;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],tools:[{google_search:{}}],generationConfig:{temperature:.5,maxOutputTokens:600}})});
+    const data=await res.json();if(!res.ok)return null;
+    const parts=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[];
+    let text=parts.map(p=>p.text||"").join("").replace(/\[\d+\]/g,"").trim();
+    return text?{text}:null;
+  }catch(e){return null;}
+}
+async function describePlace(loc,lat,lon){
   const order=[S.prefer,...ORDER.filter(l=>l!==S.prefer)];
-  const geo=await reverseGeocode(lat,lon);const localName=geo&&geo.name?norm(geo.name):"";
-  let cands=[];
-  for(const lang of order){let hits=await wikiGeosearch(lat,lon,lang,6000);if(!hits.length)hits=await wikiGeosearch(lat,lon,lang,14000);hits.forEach(h=>cands.push({title:h.title,lang,dist:h.dist}));}
-  if(!cands.length)return{geo,article:null};
-  let chosen=null;
-  if(localName){for(const lang of order){chosen=cands.find(c=>c.lang===lang&&(norm(c.title).includes(localName)||localName.includes(norm(c.title))));if(chosen)break;}}
-  if(!chosen){const pref=cands.filter(c=>c.lang===S.prefer).sort((a,b)=>a.dist-b.dist);chosen=pref[0]||cands.sort((a,b)=>a.dist-b.dist)[0];}
-  const article=await wikiExtract(chosen.title,chosen.lang);
-  if(article&&article.extract.length<140){for(const lang of order){if(lang===chosen.lang)continue;const alt=await wikiExtract(chosen.title,lang);if(alt&&alt.extract.length>article.extract.length)return{geo,article:alt,distance:chosen.dist};}}
-  return{geo,article,distance:chosen.dist};
+  const w=await wikiForSettlement(loc.settlement,lat,lon,order);
+  if(w&&w.extract)return{extract:w.extract,image:w.image,url:w.url,lang:w.lang,source:"wikipedia",native:(w.lang!=="en"&&norm(w.title)!==norm(loc.settlement))?w.title:null};
+  const g=await geminiDescribe(loc);
+  if(g&&g.text)return{extract:g.text,lang:effLang(),source:"google",native:null};
+  return{extract:"",lang:S.prefer,source:"address",native:null};
 }
 
 // ---------- reveal ----------
@@ -281,9 +324,12 @@ function showPlace(rec,fromHistory){
   }else{known.className="known hidden";desc.className="desc empty";desc.innerHTML=`<p>${esc(rec.name)} sits in ${esc([rec.district,rec.state].filter(Boolean).join(", ")||"this area")}. No Wikipedia article yet — but you've crossed it.</p>`;}
 
   const c=[];
+  if(rec.addressLine)c.push(`<div class="chip">where you are<b>${esc(rec.addressLine)}</b></div>`);
   if(rec.lat!=null)c.push(`<div class="chip">coordinates<b>${rec.lat.toFixed(4)}, ${rec.lon.toFixed(4)}</b></div>`);
   if(rec.district||rec.state)c.push(`<div class="chip">administration<b>${esc([rec.district,rec.state,rec.country].filter(Boolean).join(" · "))}</b></div>`);
-  if(rec.url)c.push(`<div class="chip">source<b><a href="${rec.url}" target="_blank" rel="noopener">${rec.lang==="pa"?"ਵਿਕੀਪੀਡੀਆ":rec.lang==="hi"?"विकिपीडिया":"Wikipedia"} ↗</a></b></div>`);
+  if(rec.source==="wikipedia"&&rec.url)c.push(`<div class="chip">source<b><a href="${rec.url}" target="_blank" rel="noopener">${rec.lang==="pa"?"ਵਿਕੀਪੀਡੀਆ":rec.lang==="hi"?"विकिपीडिया":"Wikipedia"} ↗</a></b></div>`);
+  else if(rec.source==="google")c.push(`<div class="chip">source<b>Google search · Gemini</b></div>`);
+  else c.push(`<div class="chip">source<b>Address only — set a Gemini key for a description</b></div>`);
   chips.innerHTML=c.join("");
 
   if(!fromHistory)sayPlace(rec,spokenExtra);
@@ -293,14 +339,16 @@ function sayPlace(rec,extra){const lang=rec.lang||"en";const pre=lang==="pa"?"�
 function arrow(d){return `<svg width="14" height="14" viewBox="0 0 24 24" style="transform:rotate(${d}deg)"><path d="M12 3 L18 20 L12 16 L6 20 Z" fill="currentColor"/></svg>`;}
 
 async function maybeReveal(lat,lon){
-  if(S.busy)return;S.busy=true;setStatus("Reading the land…",true);fab.disabled=true;fabtxt.innerHTML='<span class="loading"></span>';
+  if(S.busy)return;S.busy=true;setStatus("Pinpointing the place…",true);fab.disabled=true;fabtxt.innerHTML='<span class="loading"></span>';
   try{
-    const {geo,article,distance}=await pickCrossing(lat,lon);
-    const title=article?article.title:(geo&&geo.name)||"Unknown";const key=norm(title);const last=S.shown.get(key);const fresh=!last||(Date.now()-last)>REPEAT_BLOCK_MS;
-    if(fresh&&(article||(geo&&geo.name))){
-      const rec={name:article?article.title:geo.name,native:geo&&geo.name&&article&&norm(geo.name)!==norm(article.title)?geo.name:(article&&article.lang!=="en"?article.title:null),title,lang:article?article.lang:"en",extract:article?article.extract:"",image:article?article.image:null,url:article?article.url:null,district:geo?geo.district:"",state:geo?geo.state:"",country:geo?geo.country:"",lat,lon,distance,t:Date.now()};
-      S.shown.set(key,Date.now());S.history.push(rec);showPlace(rec,false);renderLedger();drawMinar();save();toast("Crossed "+rec.name);
-    }else setStatus("Still near "+(article?article.title:(geo&&geo.name)||"here"),true);
+    const loc=await reverseGeocode2(lat,lon);
+    if(!loc||!loc.settlement){setStatus("Couldn't pin the place — moving on",true);return;}
+    const key=norm(loc.settlement);const last=S.shown.get(key);const fresh=!last||(Date.now()-last)>REPEAT_BLOCK_MS;
+    if(!fresh){setStatus("Still in "+loc.settlement,true);return;}
+    setStatus("Looking up "+loc.settlement+"…",true);
+    const d=await describePlace(loc,lat,lon);
+    const rec={name:loc.settlement,native:d.native,lang:d.lang,extract:d.extract,image:d.image||null,url:d.url||null,source:d.source,addressLine:loc.addressLine,district:loc.district,state:loc.state,country:loc.country,lat,lon,distance:null,t:Date.now()};
+    S.shown.set(key,Date.now());S.history.push(rec);showPlace(rec,false);renderLedger();drawMinar();save();toast("Crossed "+rec.name);
   }catch(e){setStatus("Couldn't read this spot — moving on",true);}
   finally{S.busy=false;fab.disabled=false;fabtxt.textContent=S.running?"What's here now?":"Begin journey";if(S.running)setStatus("Tracking · "+(S.speedKmh?Math.round(S.speedKmh)+" km/h":"on foot"),true);}
 }
